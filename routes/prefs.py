@@ -36,6 +36,9 @@ def general_prefs():
         fan_mode_home_show_recent_events = 'fan_mode_home_show_recent_events' in request.form
         fan_mode_home_number_events = int(request.form.get('fan_mode_home_number_events', 5))
 
+        fan_mode_injured_wrestler_display = request.form.get('fan_mode_injured_wrestler_display', 'Show Normally')
+        fan_mode_suspended_roster_display = request.form.get('fan_mode_suspended_roster_display', 'Show Normally')
+
         ai_provider = request.form.get('ai_provider', '')
         ai_model = request.form.get('ai_model', '')
         google_api_key = request.form.get('google_api_key', '')
@@ -65,6 +68,8 @@ def general_prefs():
             "fan_mode_home_number_news": fan_mode_home_number_news,
             "fan_mode_home_show_recent_events": fan_mode_home_show_recent_events,
             "fan_mode_home_number_events": fan_mode_home_number_events,
+            "fan_mode_injured_wrestler_display": fan_mode_injured_wrestler_display,
+            "fan_mode_suspended_roster_display": fan_mode_suspended_roster_display,
             "ai_provider": ai_provider,
             "ai_model": ai_model,
             "google_api_key": google_api_key,

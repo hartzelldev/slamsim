@@ -98,6 +98,28 @@
 
         <hr class="subsection-divider">
 
+        <legend><h4>Roster Status Display</h4></legend>
+        <div class="form-group">
+            <label for="fan_mode_injured_wrestler_display">Injured Wrestler Display</label>
+            <select class="form-control" id="fan_mode_injured_wrestler_display" name="fan_mode_injured_wrestler_display">
+                <option value="Show Normally" {% if prefs.fan_mode_injured_wrestler_display == "Show Normally" %}selected{% endif %}>Show Normally</option>
+                <option value="Show with Status" {% if prefs.fan_mode_injured_wrestler_display == "Show with Status" %}selected{% endif %}>Show with Status (e.g., John Doe (Injured))</option>
+                <option value="Don't Show" {% if prefs.fan_mode_injured_wrestler_display == "Don't Show" %}selected{% endif %}>Don't Show</option>
+            </select>
+            <small class="form-text text-muted">How wrestlers with 'Injured' status appear on the Fan Mode roster.</small>
+        </div>
+        <div class="form-group">
+            <label for="fan_mode_suspended_roster_display">Suspended Roster Member Display</label>
+            <select class="form-control" id="fan_mode_suspended_roster_display" name="fan_mode_suspended_roster_display">
+                <option value="Show Normally" {% if prefs.fan_mode_suspended_roster_display == "Show Normally" %}selected{% endif %}>Show Normally</option>
+                <option value="Show with Status" {% if prefs.fan_mode_suspended_roster_display == "Show with Status" %}selected{% endif %}>Show with Status (e.g., John Doe (Suspended) / The Team (Suspended))</option>
+                <option value="Don't Show" {% if prefs.fan_mode_suspended_roster_display == "Don't Show" %}selected{% endif %}>Don't Show</option>
+            </select>
+            <small class="form-text text-muted">How wrestlers and tag teams with 'Suspended' status appear on the Fan Mode roster.</small>
+        </div>
+
+        <hr class="subsection-divider">
+
         <legend><h4>Homepage Layout</h4></legend>
         <div class="form-group form-check">
             <input type="checkbox" class="form-check-input" id="fan_mode_home_show_champions" name="fan_mode_home_show_champions" {% if prefs.fan_mode_home_show_champions %}checked{% endif %}>

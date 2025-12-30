@@ -6,7 +6,7 @@ import html
 
 wrestlers_bp = Blueprint('wrestlers', __name__, url_prefix='/wrestlers')
 
-STATUS_OPTIONS = ['Active', 'Inactive', 'Injured']
+STATUS_OPTIONS = ['Active', 'Inactive', 'Injured', 'Suspended', 'Retired']
 ALIGNMENT_OPTIONS = ['Hero', 'Babyface', 'Anti-hero', 'Tweener', 'Heel', 'Villain']
 WRESTLING_STYLES_OPTIONS = ["All-Rounder", "Brawler", "Dirty", "High-Flyer", "Luchador", "Powerhouse", "Striker", "Submission Specialist", "Technical"]
 

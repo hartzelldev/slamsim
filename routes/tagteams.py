@@ -18,7 +18,7 @@ def _sort_key_ignore_the(name):
         return name[4:]
     return name
 
-STATUS_OPTIONS = ['Active', 'Inactive']
+STATUS_OPTIONS = ['Active', 'Inactive', 'Suspended', 'Retired']
 ALIGNMENT_OPTIONS = ['Babyface', 'Tweener', 'Heel']
 
 def is_tagteam_deletable(team):

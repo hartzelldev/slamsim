@@ -31,7 +31,7 @@
                                                         {% if prefs.fan_mode_show_records %}
                                                             ({{ wrestler.Singles_Wins | default(0) }}-{{ wrestler.Singles_Losses | default(0) }}-{{ wrestler.Singles_Draws | default(0) }})
                                                         {% endif %}
-                                                        {% if wrestler.Belt %}({{ wrestler.get('current_champion_title_display', wrestler.Belt) }}){% endif %}
+                                                        {% if wrestler.Belt %}({{ wrestler.get('current_champion_title_display', wrestler.Belt) }}){% endif %}{% if wrestler.display_status %}{{ wrestler.display_status }}{% endif %}
                                                     </a>
                                                 </td>
                                             </tr>
@@ -60,7 +60,7 @@
                                                         {% if prefs.fan_mode_show_records %}
                                                             ({{ team.Wins | default(0) }}-{{ team.Losses | default(0) }}-{{ team.Draws | default(0) }})
                                                         {% endif %}
-                                                        {% if team.Belt %}({{ team.get('current_champion_title_display', team.Belt) }}){% endif %}
+                                                        {% if team.Belt %}({{ team.get('current_champion_title_display', team.Belt) }}){% endif %}{% if team.display_status %}{{ team.display_status }}{% endif %}
                                                     </a>
                                                 </td>
                                             </tr>

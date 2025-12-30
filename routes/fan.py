@@ -248,9 +248,54 @@ def roster():
     all_tagteams_raw = load_tagteams()
     all_divisions = load_divisions()
 
-    # Filter out wrestlers and tag teams hidden from the fan roster
-    active_wrestlers = [w for w in all_wrestlers_raw if w.get('Status') == 'Active' and not w.get('Hide_From_Fan_Roster', False)]
-    active_tagteams = [tt for tt in all_tagteams_raw if tt.get('Status') == 'Active' and not tt.get('Hide_From_Fan_Roster', False)]
+    # Get display preferences for injured wrestlers and suspended roster members
+    injured_wrestler_display = prefs.get('fan_mode_injured_wrestler_display', 'Show Normally')
+    suspended_roster_display = prefs.get('fan_mode_suspended_roster_display', 'Show Normally')
+
+    # Filter and modify wrestlers based on preferences
+    processed_wrestlers = []
+    for wrestler in all_wrestlers_raw:
+        wrestler['display_status'] = '' # Initialize display status
+        if wrestler.get('Hide_From_Fan_Roster', False):
+            continue # Always hide if explicitly marked
+        
+        status = wrestler.get('Status')
+        if status == 'Active':
+            processed_wrestlers.append(wrestler)
+        elif status == 'Injured':
+            if injured_wrestler_display == 'Show Normally':
+                processed_wrestlers.append(wrestler)
+            elif injured_wrestler_display == 'Show with Status':
+                wrestler['display_status'] = ' (Injured)'
+                processed_wrestlers.append(wrestler)
+            # 'Don't Show' means we skip adding it to processed_wrestlers
+        elif status == 'Suspended':
+            if suspended_roster_display == 'Show Normally':
+                processed_wrestlers.append(wrestler)
+            elif suspended_roster_display == 'Show with Status':
+                wrestler['display_status'] = ' (Suspended)'
+                processed_wrestlers.append(wrestler)
+            # 'Don't Show' means we skip adding it to processed_wrestlers
+        # For other statuses (Inactive, Retired), they are implicitly 'Don't Show' for the fan roster.
+    
+    # Filter and modify tag teams based on preferences
+    processed_tagteams = []
+    for tagteam in all_tagteams_raw:
+        tagteam['display_status'] = '' # Initialize display status
+        if tagteam.get('Hide_From_Fan_Roster', False):
+            continue # Always hide if explicitly marked
+
+        status = tagteam.get('Status')
+        if status == 'Active':
+            processed_tagteams.append(tagteam)
+        elif status == 'Suspended':
+            if suspended_roster_display == 'Show Normally':
+                processed_tagteams.append(tagteam)
+            elif suspended_roster_display == 'Show with Status':
+                tagteam['display_status'] = ' (Suspended)'
+                processed_tagteams.append(tagteam)
+            # 'Don't Show' means we skip adding it to processed_tagteams
+        # For other statuses (Inactive, Retired), they are implicitly 'Don't Show' for the fan roster.
 
     # Prepare a dictionary to hold roster data, grouped by division
     # Sort divisions by Display_Position for consistent display
@@ -264,7 +309,7 @@ def roster():
         roster_by_division[division_name] = {'wrestlers': [], 'tagteams': [], 'type': division.get('Holder_Type')}
 
         # Add wrestlers to their division
-        for wrestler in active_wrestlers:
+        for wrestler in processed_wrestlers:
             if wrestler.get('Division') == division_id:
                 if wrestler.get('Belt'):
                     belt_obj = get_belt_by_name(wrestler['Belt'])
@@ -275,7 +320,7 @@ def roster():
                 roster_by_division[division_name]['wrestlers'].append(wrestler)
         
         # Add tag teams to their division
-        for tagteam in active_tagteams:
+        for tagteam in processed_tagteams:
             if tagteam.get('Division') == division_id:
                 if tagteam.get('Belt'):
                     belt_obj = get_belt_by_name(tagteam['Belt'])
