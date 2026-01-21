@@ -7,6 +7,10 @@ INCLUDES_DIR = 'includes' # New constant for includes directory
 TMP_DIR = os.path.join(INCLUDES_DIR, 'tmp') # Updated TMP_DIR path
 LEAGUE_LOGO_FILENAME = 'league_logo.png' # New constant for logo filename
 
+# New constants for static site generation
+STATIC_SITE_OUTPUT_DIR_NAME = 'static_export'
+STATIC_SITE_ZIP_DIR_NAME = 'static_site_zips'
+
 # List of all primary data files to be deleted. prefs.json is excluded.
 DATA_FILES = [
     'belts.json', 'belt_history.json', 'divisions.json', 

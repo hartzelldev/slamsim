@@ -20,9 +20,9 @@
     <div class="details-card">
         <div class="card-header"><h3>Team Members</h3></div>
         <div class="card-content">
-            {% if tagteam.Members %}
+            {% if tagteam.members_list %}
             <ul>
-                {% for member in tagteam.Members.split('|') %}
+                {% for member in tagteam.members_list %}
                     <li>{{ member }}</li>
                 {% endfor %}
             </ul>
@@ -59,12 +59,12 @@
     </div>
     {% endif %}
 
-    {% if tagteam.Moves %}
+    {% if tagteam.moves_list %}
     <div class="details-card full-width">
         <div class="card-header"><h3>Signature Moves</h3></div>
         <div class="card-content">
             <ul>
-                {% for move in tagteam.Moves.split('|') %}
+                {% for move in tagteam.moves_list %}
                     <li>{{ move }}</li>
                 {% endfor %}
             </ul>
@@ -72,12 +72,12 @@
     </div>
     {% endif %}
 
-    {% if tagteam.Awards %}
+    {% if tagteam.awards_list %}
     <div class="details-card full-width">
         <div class="card-header"><h3>Accomplishments</h3></div>
         <div class="card-content">
             <ul>
-                {% for award in tagteam.Awards.split('|') %}
+                {% for award in tagteam.awards_list %}
                     <li>{{ award }}</li>
                 {% endfor %}
             </ul>

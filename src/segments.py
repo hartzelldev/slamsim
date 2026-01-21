@@ -51,7 +51,7 @@ def _get_all_tag_teams_involved(sides, all_tagteams_data):
     """
     teams = set()
     team_member_sets = {
-        team_data.get('Name'): set(team_data.get('Members', '').split('|'))
+        team_data.get('Name'): set(_get_members_list_from_team_data(team_data))
         for team_data in all_tagteams_data if team_data.get('Name') and team_data.get('Members')
     }
     
@@ -69,13 +69,13 @@ def _generate_side_display_string(side, all_tagteams_data):
     # Find teams whose members are fully contained within this side
     contained_teams = [
         team for team in all_tagteams_data 
-        if set(team.get('Members', '').split('|')).issubset(side_set) and len(team.get('Members', '').split('|')) > 1
+        if set(_get_members_list_from_team_data(team)).issubset(side_set) and len(_get_members_list_from_team_data(team)) > 1
     ]
     
     # Get all wrestlers who are part of the found teams
     wrestlers_in_teams = set()
     for team in contained_teams:
-        for member in team.get('Members', '').split('|'):
+        for member in _get_members_list_from_team_data(team):
             wrestlers_in_teams.add(member)
             
     # Get wrestlers who are not in any of the found teams
@@ -84,7 +84,7 @@ def _generate_side_display_string(side, all_tagteams_data):
     # Build the string parts
     parts = []
     for team in contained_teams:
-        members_str = ", ".join(team.get('Members', '').split('|'))
+        members_str = ", ".join(_get_members_list_from_team_data(team))
         parts.append(f"{team['Name']} ({members_str})")
     
     parts.extend(independent_wrestlers)
@@ -151,7 +151,7 @@ def generate_match_result_display_string(match_data, all_tagteams_data, all_belt
                 if current_holder:
                     if belt.get('Holder_Type') == 'Tag-Team':
                         winning_side_members = set(winning_side_participants)
-                        team_members = set(next((t['Members'].split('|') for t in all_tagteams_data if t['Name'] == current_holder), []))
+                        team_members = set(next((_get_members_list_from_team_data(t) for t in all_tagteams_data if t['Name'] == current_holder), []))
                         if team_members and team_members.issubset(winning_side_members):
                             is_retain = True
                     else: # Singles
@@ -267,7 +267,7 @@ def _sync_team_results_to_individuals(match_results, all_tagteams_data):
     individual_results = match_results.get("individual_results", {})
     
     team_members_map = {
-        team_data['Name']: team_data['Members'].split('|')
+        team_data['Name']: _get_members_list_from_team_data(team_data)
         for team_data in all_tagteams_data if 'Name' in team_data and 'Members' in team_data
     }
 
@@ -339,7 +339,7 @@ def _validate_result_completeness(match_results, sides, all_wrestlers_in_match, 
                         warnings.append(f"Wrestler '{wrestler}' on a non-winning side has result 'Win'.")
         
         team_members_map = {
-            team_data['Name']: set(team_data.get('Members', '').split('|'))
+            team_data['Name']: set(_get_members_list_from_team_data(team_data))
             for team_data in all_tagteams_data if 'Name' in team_data and 'Members' in team_data
         }
         
@@ -356,6 +356,8 @@ def _validate_result_completeness(match_results, sides, all_wrestlers_in_match, 
                         warnings.append(f"Team '{team_name}' (on non-winning side) has result 'Win'.")
 
     return warnings
+
+from .tagteams import _get_members_list_from_team_data # Import the helper from tagteams
 
 def _get_project_root():
     """Returns the absolute path to the project root directory."""

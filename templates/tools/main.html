@@ -19,6 +19,36 @@
                 </a>
                 <!-- Add more tool links here as they are developed -->
             </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Static Fan Site Generator</h3>
+                </div>
+                <div class="card-body">
+                    <p>Generate a static HTML version of your Fan Mode pages, suitable for uploading to a web server.</p>
+                    <form action="{{ url_for('tools.generate_static_site_route') }}" method="POST">
+                        <button type="submit" class="btn btn-primary">Generate Static Site</button>
+                    </form>
+
+                    {% if static_site_zips %}
+                    <h5 class="mt-4">Previously Generated Sites:</h5>
+                    <ul class="list-group mt-2">
+                        {% for zip_file in static_site_zips %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ zip_file }}
+                            <div>
+                                <a href="{{ url_for('tools.download_static_site', filename=zip_file) }}" class="btn btn-sm btn-success me-2">Download</a>
+                                <form action="{{ url_for('tools.delete_static_site_zip', filename=zip_file) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this backup?');">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
     </div>
 </div>

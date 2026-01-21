@@ -1,8 +1,8 @@
 import datetime
 from flask import Blueprint, render_template, flash, redirect, url_for
 from src.prefs import load_preferences
-from src.wrestlers import load_wrestlers, get_wrestler_by_name
-from src.tagteams import load_tagteams, get_tagteam_by_name
+from src.wrestlers import load_wrestlers, get_wrestler_by_name, _get_list_from_data_field # Import new helper
+from src.tagteams import load_tagteams, get_tagteam_by_name, _get_members_list_from_team_data
 from src.divisions import load_divisions
 from src.events import load_events, get_event_by_name, load_event_summary_content, get_event_by_slug
 import markdown
@@ -27,7 +27,7 @@ def champions_list():
             team_name = belt['Current_Holder']
             tagteam = next((tt for tt in all_tagteams if tt['Name'] == team_name), None)
             if tagteam:
-                members = [m for m in [tagteam.get('Member1'), tagteam.get('Member2')] if m]
+                members = _get_members_list_from_team_data(tagteam)
                 if members:
                     belt['display_holder'] = f"{team_name} ({', '.join(members)})"
     
@@ -40,7 +40,7 @@ def belt_history(belt_id):
     belt = get_belt_by_id(belt_id)
     if not belt:
         flash("Belt not found.", 'danger')
-        return redirect(url_for('fan.champions_list'))
+        return redirect(static_url_for('fan.champions_list'))
 
     history = load_history_for_belt(belt_id)
     history.sort(key=lambda r: datetime.datetime.strptime(r['Date_Won'], '%Y-%m-%d'), reverse=True)
@@ -132,7 +132,7 @@ def home():
                 team_name = belt['Current_Holder']
                 tagteam = next((tt for tt in all_tagteams if tt['Name'] == team_name), None)
                 if tagteam:
-                    members = [m for m in [tagteam.get('Member1'), tagteam.get('Member2')] if m]
+                    members = _get_members_list_from_team_data(tagteam)
                     if members:
                         belt['display_holder'] = f"{team_name} ({', '.join(members)})"
 
@@ -153,7 +153,7 @@ def view_wrestler(wrestler_name):
 
     if not wrestler:
         flash(f"Wrestler '{wrestler_name}' not found.", 'danger')
-        return redirect(url_for('fan.roster'))
+        return redirect(static_url_for('fan.roster'))
 
     # Add champion_title_display for individual wrestler view
     if wrestler.get('Belt'):
@@ -162,6 +162,11 @@ def view_wrestler(wrestler_name):
             wrestler['current_champion_title_display'] = belt_obj.get('Champion_Title', 'Champion')
         else:
             wrestler['current_champion_title_display'] = wrestler['Belt'] # Fallback to belt name
+
+    # Prepare moves, awards, and salary lists for template display
+    wrestler['moves_list'] = _get_list_from_data_field(wrestler.get('Moves'))
+    wrestler['awards_list'] = _get_list_from_data_field(wrestler.get('Awards'))
+    wrestler['salary_list'] = _get_list_from_data_field(wrestler.get('Salary'))
 
     # Calculate total record
     singles_wins = int(wrestler.get('Singles_Wins', 0))
@@ -187,7 +192,7 @@ def view_tagteam(tagteam_name):
 
     if not tagteam:
         flash(f"Tag Team '{tagteam_name}' not found.", 'danger')
-        return redirect(url_for('fan.roster'))
+        return redirect(static_url_for('fan.roster'))
 
     # Add champion_title_display for individual tagteam view
     if tagteam.get('Belt'):
@@ -196,6 +201,11 @@ def view_tagteam(tagteam_name):
             tagteam['current_champion_title_display'] = belt_obj.get('Champion_Title', 'Champion')
         else:
             tagteam['current_champion_title_display'] = tagteam['Belt'] # Fallback to belt name
+
+    # Prepare members, moves, and awards lists for template display
+    tagteam['members_list'] = _get_members_list_from_team_data(tagteam)
+    tagteam['moves_list'] = _get_list_from_data_field(tagteam.get('Moves'))
+    tagteam['awards_list'] = _get_list_from_data_field(tagteam.get('Awards'))
 
     return render_template('fan/tagteam.html', tagteam=tagteam, prefs=prefs)
 
@@ -207,7 +217,7 @@ def view_event(event_slug):
 
     if not event:
         flash(f"Event '{event_slug}' not found.", 'danger')
-        return redirect(url_for('fan.home')) # Redirect to fan home if event not found
+        return redirect(static_url_for('fan.home')) # Redirect to fan home if event not found
 
     segments = load_segments(_slugify(event_slug))
     segments.sort(key=lambda s: s.get('position', 9999)) # Sort segments by position
@@ -489,7 +499,7 @@ def view_news(news_id):
 
     if not news_post:
         flash("News post not found.", 'danger')
-        return redirect(url_for('fan.news_list'))
+        return redirect(static_url_for('fan.news_list'))
     
     news_post['RenderedContent'] = markdown.markdown(news_post.get('Content', ''))
 

@@ -1,22 +1,28 @@
 import os
 import zipfile
-import shutil # Import shutil for directory operations
+import shutil
 from datetime import datetime
 import litellm
 import json
-import html # Import the html module for unescaping
-import base64 # Import base64 for encoding/decoding JSON data
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
+import html
+import base64
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app # Import current_app
 from src.system import get_project_root, DATA_DIR, delete_all_temporary_files
 from src.prefs import load_preferences
 from src.wrestlers import add_wrestler
+from src.static_site_generator import generate_static_site, STATIC_SITE_ZIP_DIR_NAME # Import new functions and constants
 
 tools_bp = Blueprint('tools', __name__, url_prefix='/tools')
 
 @tools_bp.route('/')
 def tools_main():
     """Renders the main tools dashboard page."""
-    return render_template('tools/main.html')
+    # Get list of existing static site zip files
+    zip_storage_path = os.path.join(get_project_root(), STATIC_SITE_ZIP_DIR_NAME)
+    static_site_zips = []
+    if os.path.exists(zip_storage_path):
+        static_site_zips = sorted([f for f in os.listdir(zip_storage_path) if f.endswith('.zip')], reverse=True)
+    return render_template('tools/main.html', static_site_zips=static_site_zips)
 
 @tools_bp.route('/backup')
 def backup_restore():
@@ -349,3 +355,41 @@ def restore_data():
         flash('Invalid file type. Please upload a .zip file.', 'danger')
     
     return redirect(url_for('tools.backup_restore'))
+
+@tools_bp.route('/generate_static_site', methods=['POST'])
+def generate_static_site_route():
+    """Triggers the generation of a static Fan Mode site."""
+    try:
+        # Pass the current Flask app instance to the generator function
+        zip_file_path = generate_static_site(current_app)
+        flash(f"Static Fan Mode site generated successfully! Download '{os.path.basename(zip_file_path)}'.", "success")
+        return send_file(zip_file_path, as_attachment=True, download_name=os.path.basename(zip_file_path))
+    except Exception as e:
+        flash(f"Error generating static site: {e}", "danger")
+        return redirect(url_for('tools.tools_main'))
+
+@tools_bp.route('/download_static_site/<filename>')
+def download_static_site(filename):
+    """Allows downloading of previously generated static site zip files."""
+    zip_storage_path = os.path.join(get_project_root(), STATIC_SITE_ZIP_DIR_NAME)
+    file_path = os.path.join(zip_storage_path, filename)
+    if os.path.exists(file_path) and filename.endswith('.zip'):
+        return send_file(file_path, as_attachment=True, download_name=filename)
+    else:
+        flash("File not found or invalid.", "danger")
+        return redirect(url_for('tools.tools_main'))
+
+@tools_bp.route('/delete_static_site_zip/<filename>', methods=['POST'])
+def delete_static_site_zip(filename):
+    """Deletes a generated static site zip file."""
+    zip_storage_path = os.path.join(get_project_root(), STATIC_SITE_ZIP_DIR_NAME)
+    file_path = os.path.join(zip_storage_path, filename)
+    if os.path.exists(file_path) and filename.endswith('.zip'):
+        try:
+            os.remove(file_path)
+            flash(f"Deleted '{filename}'.", "success")
+        except OSError as e:
+            flash(f"Error deleting file: {e}", "danger")
+    else:
+        flash("File not found or invalid.", "danger")
+    return redirect(url_for('tools.tools_main'))

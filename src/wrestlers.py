@@ -3,24 +3,63 @@ import os
 
 WRESTLERS_FILE_RELATIVE_TO_ROOT = 'data/wrestlers.json'
 
+def _get_list_from_data_field(data_field):
+    """
+    Extracts a list of items from a data field, handling both string (pipe-separated)
+    and list formats. Returns an empty list if the field is None or empty.
+    """
+    if isinstance(data_field, list):
+        return data_field
+    elif isinstance(data_field, str):
+        return [item.strip() for item in data_field.split('|') if item.strip()]
+    return []
+
 def _get_wrestlers_file_path():
     """Constructs the absolute path to the wrestlers data file."""
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     return os.path.join(project_root, WRESTLERS_FILE_RELATIVE_TO_ROOT)
 
 def load_wrestlers():
-    """Loads wrestler data from the JSON file."""
+    """Loads wrestler data from the JSON file and ensures 'Name' is a string."""
     file_path = _get_wrestlers_file_path()
     if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
         return []
     with open(file_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+        wrestlers = json.load(f)
+    
+    # Ensure 'Name', 'Moves', 'Awards', and 'Salary' fields are always lists after loading
+    for wrestler in wrestlers:
+        name = wrestler.get('Name')
+        if isinstance(name, list):
+            wrestler['Name'] = ' '.join(name) # Join list elements into a string
+        elif not isinstance(name, str):
+            wrestler['Name'] = '' # Default to empty string if not list or string
+        
+        wrestler['Moves'] = _get_list_from_data_field(wrestler.get('Moves'))
+        wrestler['Awards'] = _get_list_from_data_field(wrestler.get('Awards'))
+        wrestler['Salary'] = _get_list_from_data_field(wrestler.get('Salary'))
+    return wrestlers
 
 def save_wrestlers(wrestlers_list):
-    """Saves wrestler data to the JSON file."""
+    """Saves wrestler data to the JSON file, ensuring list fields are '|' separated strings."""
     file_path = _get_wrestlers_file_path()
+    
+    wrestlers_to_save = []
+    for wrestler in wrestlers_list:
+        wrestler_copy = wrestler.copy()
+        
+        # Convert 'Moves', 'Awards', and 'Salary' lists back to pipe-separated strings for saving
+        for field in ['Moves', 'Awards', 'Salary']:
+            data = wrestler_copy.get(field)
+            if isinstance(data, list):
+                wrestler_copy[field] = '|'.join(data)
+            elif not isinstance(data, str):
+                wrestler_copy[field] = '' # Ensure it's a string even if empty
+
+        wrestlers_to_save.append(wrestler_copy)
+
     with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(wrestlers_list, f, indent=4)
+        json.dump(wrestlers_to_save, f, indent=4)
 
 def get_wrestler_by_name(name):
     """Retrieves a wrestler by their unique name."""

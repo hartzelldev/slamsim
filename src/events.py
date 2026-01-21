@@ -23,7 +23,16 @@ def load_events():
         if not content:
             return []
         f.seek(0) # Reset file pointer to the beginning if content was read
-        return json.loads(content)
+        events = json.loads(content)
+    
+    # Ensure 'Event_Name' field is always a string
+    for event in events:
+        event_name = event.get('Event_Name')
+        if isinstance(event_name, list):
+            event['Event_Name'] = ' '.join(event_name) # Join list elements into a string
+        elif not isinstance(event_name, str):
+            event['Event_Name'] = '' # Default to empty string if not list or string
+    return events
 
 def save_events(events_list):
     """Saves events to the JSON file."""

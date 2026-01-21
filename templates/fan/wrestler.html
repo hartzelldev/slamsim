@@ -56,12 +56,12 @@
     </div>
     {% endif %}
 
-    {% if wrestler.Moves %}
+    {% if wrestler.moves_list %}
     <div class="details-card full-width">
         <div class="card-header"><h3>Signature Moves</h3></div>
         <div class="card-content">
             <ul>
-                {% for move in wrestler.Moves.split('|') %}
+                {% for move in wrestler.moves_list %}
                     <li>{{ move }}</li>
                 {% endfor %}
             </ul>
@@ -69,12 +69,12 @@
     </div>
     {% endif %}
 
-    {% if wrestler.Awards %}
+    {% if wrestler.awards_list %}
     <div class="details-card full-width">
         <div class="card-header"><h3>Accomplishments</h3></div>
         <div class="card-content">
             <ul>
-                {% for award in wrestler.Awards.split('|') %}
+                {% for award in wrestler.awards_list %}
                     <li>{{ award }}</li>
                 {% endfor %}
             </ul>
@@ -88,10 +88,10 @@
         <div class="card-content">
             <p><strong>Real Name:</strong> {{ wrestler.Real_Name }}</p>
             <p><strong>Start Date:</strong> {{ wrestler.Start_Date }}</p>
-            {% if wrestler.Salary %}
+            {% if wrestler.salary_list %}
             <h4>Salary History</h4>
             <ul>
-                {% for item in wrestler.Salary.split('|') %}
+                {% for item in wrestler.salary_list %}
                     <li>{{ item }}</li>
                 {% endfor %}
             </ul>

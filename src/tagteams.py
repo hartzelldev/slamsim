@@ -4,24 +4,71 @@ from src.wrestlers import get_wrestler_by_name
 
 TAGTEAMS_FILE_RELATIVE_TO_ROOT = 'data/tagteams.json'
 
+def _get_members_list_from_team_data(team_data):
+    """
+    Extracts a list of member names from team data, handling both string (pipe-separated)
+    and list formats for the 'Members' field.
+    """
+    members_data = team_data.get('Members')
+    if isinstance(members_data, list):
+        return members_data
+    elif isinstance(members_data, str):
+        return [m.strip() for m in members_data.split('|') if m.strip()]
+    return []
+
+def _get_list_from_data_field(data_field):
+    """
+    Extracts a list of items from a data field, handling both string (pipe-separated)
+    and list formats. Returns an empty list if the field is None or empty.
+    """
+    if isinstance(data_field, list):
+        return data_field
+    elif isinstance(data_field, str):
+        return [item.strip() for item in data_field.split('|') if item.strip()]
+    return []
+
 def _get_tagteams_file_path():
     """Constructs the absolute path to the tagteams data file."""
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     return os.path.join(project_root, TAGTEAMS_FILE_RELATIVE_TO_ROOT)
 
 def load_tagteams():
-    """Loads tag-team data from the JSON file."""
+    """Loads tag-team data from the JSON file and ensures 'Members' is a string."""
     filepath = _get_tagteams_file_path()
     if not os.path.exists(filepath) or os.path.getsize(filepath) == 0:
         return []
     with open(filepath, 'r', encoding='utf-8') as f:
-        return json.load(f)
+        tagteams = json.load(f)
+    
+    # Ensure 'Members', 'Moves', and 'Awards' fields are always lists after loading
+    for team in tagteams:
+        team['Members'] = _get_list_from_data_field(team.get('Members'))
+        team['Moves'] = _get_list_from_data_field(team.get('Moves'))
+        team['Awards'] = _get_list_from_data_field(team.get('Awards'))
+    return tagteams
 
 def save_tagteams(tagteams_list):
-    """Saves tag-team data to the JSON file."""
+    """Saves tag-team data to the JSON file, ensuring 'Members' is a '|' separated string."""
     filepath = _get_tagteams_file_path()
+    
+    # Create a copy to modify before saving, so the original list in memory isn't altered
+    # if it's being used elsewhere in the current execution context.
+    tagteams_to_save = []
+    for team in tagteams_list:
+        team_copy = team.copy()
+        
+        # Convert 'Members', 'Moves', and 'Awards' lists back to pipe-separated strings for saving
+        for field in ['Members', 'Moves', 'Awards']:
+            data = team_copy.get(field)
+            if isinstance(data, list):
+                team_copy[field] = '|'.join(data)
+            elif not isinstance(data, str):
+                team_copy[field] = '' # Ensure it's a string even if empty
+
+        tagteams_to_save.append(team_copy)
+
     with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(tagteams_list, f, indent=4)
+        json.dump(tagteams_to_save, f, indent=4)
 
 def get_tagteam_by_name(name):
     """Retrieves a single tag-team by its name."""
@@ -79,12 +126,10 @@ def recalculate_all_tagteam_weights():
     all_tagteams = load_tagteams()
     updated_count = 0
     for team in all_tagteams:
-        member_names = team.get('Members', '').split('|')
-        # Filter out empty strings from member_names list
-        valid_member_names = [name for name in member_names if name]
+        member_names = _get_members_list_from_team_data(team)
         
-        if valid_member_names:
-            new_weight = _calculate_tagteam_weight(valid_member_names)
+        if member_names:
+            new_weight = _calculate_tagteam_weight(member_names)
             if team.get('Weight') != new_weight:
                 team['Weight'] = new_weight
                 updated_count += 1

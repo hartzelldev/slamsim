@@ -10,6 +10,7 @@
     <header>
         <nav class="main-nav">
             <ul>
+                {% if not static_export_mode %}
                 <li><a href="{{ url_for('index') }}">Index</a></li>
                 <li class="dropdown">
                     <button class="dropbtn" aria-haspopup="true" aria-expanded="false">Booker Mode</button>
@@ -23,17 +24,19 @@
                         <a href="{{ url_for('news.list_news') }}">News</a>
                     </div>
                 </li>
+                {% endif %}
                 <li class="dropdown">
                     <button class="dropbtn" aria-haspopup="true" aria-expanded="false">Fan Mode</button>
                     <div class="dropdown-content" id="fanDropdown">
-                        <a href="{{ url_for('fan.home') }}">League Home</a>
-                        <a href="{{ url_for('fan.roster') }}">Roster</a>
-                        <a href="{{ url_for('fan.events_list') }}">Events</a>
-                        <a href="{{ url_for('fan.champions_list') }}">Champions</a>
-                        <a href="{{ url_for('fan.news_list') }}">News</a>
+                        <a href="{{ static_url_for('fan.home') }}">League Home</a>
+                        <a href="{{ static_url_for('fan.roster') }}">Roster</a>
+                        <a href="{{ static_url_for('fan.events_list') }}">Events</a>
+                        <a href="{{ static_url_for('fan.champions_list') }}">Champions</a>
+                        <a href="{{ static_url_for('fan.news_list') }}">News</a>
                         {# Add more fan-facing pages here later #}
                     </div>
                 </li>
+                {% if not static_export_mode %}
                 <li><a href="{{ url_for('prefs.general_prefs') }}">Preferences</a></li>
                 <li class="dropdown">
                     <button class="dropbtn" aria-haspopup="true" aria-expanded="false">Tools</button>
@@ -45,6 +48,7 @@
                 </li>
                 <li><a href="{{ url_for('about') }}">About</a></li>
                 <li><a href="{{ url_for('goodbye') }}">Exit</a></li>
+                {% endif %}
             </ul>
         </nav>
 
