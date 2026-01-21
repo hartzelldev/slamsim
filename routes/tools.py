@@ -362,8 +362,10 @@ def generate_static_site_route():
     try:
         # Pass the current Flask app instance to the generator function
         zip_file_path = generate_static_site(current_app)
-        flash(f"Static Fan Mode site generated successfully! Download '{os.path.basename(zip_file_path)}'.", "success")
-        return send_file(zip_file_path, as_attachment=True, download_name=os.path.basename(zip_file_path))
+        zip_filename = os.path.basename(zip_file_path)
+        download_url = url_for('tools.download_static_site', filename=zip_filename)
+        flash(f"Static Fan Mode site generated successfully! You can download it <a href='{download_url}' class='alert-link'>{zip_filename}</a>.", "success")
+        return redirect(url_for('tools.tools_main'))
     except Exception as e:
         flash(f"Error generating static site: {e}", "danger")
         return redirect(url_for('tools.tools_main'))
