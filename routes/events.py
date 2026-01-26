@@ -192,14 +192,15 @@ def finalize_event(event_name):
                         for member_name in team_data['Members']: # team_data['Members'] is already a list
                             update_wrestler_record(member_name, 'tag', team_result)
             all_wrestlers_in_match = _get_all_wrestlers_involved(match.get('sides', []))
+            match_class = match.get('match_class') # Get match_class once
             for wrestler_name in all_wrestlers_in_match:
                 result = match['individual_results'].get(wrestler_name)
                 if result:
                     record_match_class = None
-                    if match.get('match_class') == 'singles':
+                    if match_class == 'singles':
                         record_match_class = 'singles'
-                    elif match.get('match_class') == 'tag':
-                        record_match_class = 'tag'
+                    # For 'tag' matches, individual wrestler records are updated via the tag team processing block.
+                    # For 'battle_royal' or 'other' match classes, individual records are not updated here.
                     
                     if record_match_class:
                         update_wrestler_record(wrestler_name, record_match_class, result)
