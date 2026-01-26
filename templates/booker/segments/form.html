@@ -53,7 +53,7 @@
                         </optgroup>
                         <optgroup label="Tag Teams">
                              {% for team in all_tagteams %}
-                                <option value="tagteam:{{ team.Name }}" data-members="{{ team.Members }}">{{ team.Name }}</option>
+                                <option value="tagteam:{{ team.Name }}" data-members="{{ team.Members | tojson }}">{{ team.Name }}</option>
                             {% endfor %}
                         </optgroup>
                     </select>
@@ -398,7 +398,7 @@
         const teams = new Set();
         const team_member_sets = {};
         all_tagteams_data.forEach(t => {
-            if (t.Name && t.Members) team_member_sets[t.Name] = new Set(t.Members.split('|'));
+            if (t.Name && t.Members) team_member_sets[t.Name] = new Set(t.Members); // t.Members is already a list
         });
         sides.forEach(side => {
             const side_members_set = new Set(side);
@@ -569,7 +569,7 @@
             membersToAdd.push(name);
         } else if (type === 'tagteam') {
             const team = allTagTeams.find(t => t.Name === name);
-            if (team && team.Members) membersToAdd = team.Members.split('|');
+            if (team && team.Members) membersToAdd = team.Members; // team.Members is already a list
         }
         const currentSideIndex = parseInt(document.body.dataset.currentSideIndex || '0');
         const targetSide = currentSides[currentSideIndex];
@@ -646,20 +646,20 @@
     function _generateSideDisplayStringJS(side, allTagTeamsData) {
         const sideSet = new Set(side);
         const containedTeams = allTagTeamsData.filter(team => {
-            const members = team.Members ? team.Members.split('|') : [];
+            const members = team.Members || []; // team.Members is already a list
             return members.length > 1 && members.every(member => sideSet.has(member));
         });
         
         const wrestlersInTeams = new Set();
         containedTeams.forEach(team => {
-            (team.Members ? team.Members.split('|') : []).forEach(member => wrestlersInTeams.add(member));
+            (team.Members || []).forEach(member => wrestlersInTeams.add(member)); // team.Members is already a list
         });
             
         const independentWrestlers = side.filter(w => !wrestlersInTeams.has(w));
         
         const parts = [];
         containedTeams.forEach(team => {
-            const membersStr = team.Members ? team.Members.split('|').join(', ') : '';
+            const membersStr = team.Members ? team.Members.join(', ') : '';
             parts.push(`${team.Name} (${membersStr})`);
         });
         
@@ -701,7 +701,7 @@
                     if (currentHolder) {
                         if (belt.Holder_Type === 'Tag-Team') {
                             const winningSideMembers = new Set(winningSideParticipants);
-                            const teamMembers = new Set(allTagTeams.find(t => t.Name === currentHolder)?.Members?.split('|') || []);
+                            const teamMembers = new Set(allTagTeams.find(t => t.Name === currentHolder)?.Members || []); // Members is already a list
                             if (teamMembers.size > 0 && [...teamMembers].every(member => winningSideMembers.has(member))) {
                                 isRetain = true;
                             }

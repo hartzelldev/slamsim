@@ -189,7 +189,7 @@ def finalize_event(event_name):
                     update_tagteam_record(team_name, team_result)
                     team_data = get_tagteam_by_name(team_name)
                     if team_data and team_data.get('Members'):
-                        for member_name in team_data['Members'].split('|'):
+                        for member_name in team_data['Members']: # team_data['Members'] is already a list
                             update_wrestler_record(member_name, 'tag', team_result)
             all_wrestlers_in_match = _get_all_wrestlers_involved(match.get('sides', []))
             for wrestler_name in all_wrestlers_in_match:

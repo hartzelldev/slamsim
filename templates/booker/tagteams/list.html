@@ -39,7 +39,7 @@
             {% for tagteam in tagteams %}
             <tr>
                 <td><a href="{{ url_for('tagteams.view_tagteam', tagteam_name=tagteam.Name) }}">{{ tagteam.Name }}</a></td>
-                <td>{{ tagteam.Members.replace('|', ', ') }}</td>
+                <td>{{ tagteam.Members | join(', ') }}</td>
                 <td>{{ tagteam.Status }}</td>
                 <td>{{ tagteam.DivisionName }}</td>
                 <td>

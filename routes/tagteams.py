@@ -117,7 +117,7 @@ def edit_tagteam(tagteam_name):
     
     wrestler_names = get_wrestler_names()
     all_divisions = divisions.get_all_division_ids_and_names()
-    old_members = set(tagteam.get('Members', '').split('|')) if tagteam else set()
+    old_members = set(tagteam.get('Members', [])) if tagteam else set()
 
     if request.method == 'POST':
         # Get processed form data using the helper function
@@ -191,12 +191,12 @@ def edit_tagteam(tagteam_name):
     tagteam['Music'] = tagteam.get('Music', '')
     tagteam['Faction'] = tagteam.get('Faction', '')
     tagteam['Manager'] = tagteam.get('Manager', '')
-    tagteam['Moves'] = tagteam.get('Moves', '').replace('|', '\n')
-    tagteam['Awards'] = tagteam.get('Awards', '').replace('|', '\n')
+    tagteam['Moves'] = '\n'.join(tagteam.get('Moves', []))
+    tagteam['Awards'] = '\n'.join(tagteam.get('Awards', []))
     tagteam['Hide_From_Fan_Roster'] = tagteam.get('Hide_From_Fan_Roster', False)
     tagteam['Belt'] = tagteam.get('Belt', '') # Ensure 'Belt' is present, though not directly editable here
 
-    members_list = tagteam.get('Members', '').split('|')
+    members_list = tagteam.get('Members', [])
     tagteam['Member1'] = members_list[0] if len(members_list) > 0 else ''
     tagteam['Member2'] = members_list[1] if len(members_list) > 1 else ''
     tagteam['Member3'] = members_list[2] if len(members_list) > 2 else ''
@@ -223,7 +223,7 @@ def delete_tagteam_route(tagteam_name):
 
     # Clear team affiliation from members before deleting
     if team and team.get('Members'):
-        for member_name in team['Members'].split('|'):
+        for member_name in team['Members']: # Members is already a list
             if member_name: update_wrestler_team_affiliation(member_name, '')
             
     delete_tagteam(tagteam_name)
