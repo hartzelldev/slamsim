@@ -25,7 +25,7 @@ You will need Python 3 and Pip installed on your system.
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/garymhartzell/slamsim.git](https://github.com/garymhartzell/slamsim.git)
+    git clone [https://github.com/hartzelldev/slamsim.git](https://github.com/hartzelldev/slamsim.git)
     cd slamsim
     ```
 
