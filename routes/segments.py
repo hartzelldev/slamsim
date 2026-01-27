@@ -431,10 +431,17 @@ def ai_generate(event_slug, position):
         else:
             tagteam = next((t for t in all_tagteams_data if t.get('Name') == p_name), None)
             if tagteam:
+                members_raw = tagteam.get('Members')
+                members_processed = []
+                if isinstance(members_raw, str):
+                    members_processed = members_raw.split('|')
+                elif isinstance(members_raw, list):
+                    members_processed = members_raw
+
                 dossier = {
                     "Type": "Tag-Team",
                     "Name": tagteam.get('Name'),
-                    "Members": tagteam.get('Members', '').split('|') if tagteam.get('Members') else [],
+                    "Members": members_processed,
                     "Alignment": tagteam.get('Alignment'),
                     "Belt": tagteam.get('Belt'),
                     "Manager": tagteam.get('Manager'),
