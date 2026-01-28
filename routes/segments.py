@@ -425,7 +425,12 @@ def ai_generate(event_slug, position):
                 "Faction": wrestler.get('Faction'),
                 "Height": wrestler.get('Height'),
                 "Weight": wrestler.get('Weight'),
-                "Moves": wrestler.get('Moves', '').split('|') if wrestler.get('Moves') else [], # Changed from Signature_Moves to Moves
+                # Handle 'Moves' which might be a pipe-separated string or already a list.
+                # Uses walrus operator (Python 3.8+) for cleaner assignment and check.
+                "Moves": (
+                    (wrestler_moves.split('|') if isinstance(wrestler_moves, str) else wrestler_moves)
+                    if isinstance(wrestler_moves, (str, list)) else []
+                ) if (wrestler_moves := wrestler.get('Moves')) else [],
             }
             dossiers.append(dossier)
         else:
@@ -446,7 +451,11 @@ def ai_generate(event_slug, position):
                     "Belt": tagteam.get('Belt'),
                     "Manager": tagteam.get('Manager'),
                     "Faction": tagteam.get('Faction'),
-                    "Moves": tagteam.get('Moves', '').split('|') if tagteam.get('Moves') else [],
+                    # Handle 'Moves' which might be a pipe-separated string or already a list.
+                    "Moves": (
+                        (tagteam_moves.split('|') if isinstance(tagteam_moves, str) else tagteam_moves)
+                        if isinstance(tagteam_moves, (str, list)) else []
+                    ) if (tagteam_moves := tagteam.get('Moves')) else [],
                 }
                 dossiers.append(dossier)
 
