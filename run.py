@@ -30,8 +30,13 @@ def main():
     # Open the index page in a new browser tab
     print("Opening browser to http://127.0.0.1:5000/")
     webbrowser.open_new_tab('http://127.0.0.1:5000/')
-    
-    process.wait() # Wait for the Flask app to be terminated
+    try:
+        process.wait() # Wait for the Flask app to be terminated
+    except KeyboardInterrupt:
+        print("\nCtrl+C detected. Terminating Flask application...")
+        process.terminate() # Send SIGTERM to the Flask process
+        process.wait()      # Wait for the process to actually terminate
+        print("Flask application terminated.")
 
 if __name__ == "__main__":
     main()
