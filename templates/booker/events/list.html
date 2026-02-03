@@ -40,9 +40,9 @@
             {% for event in events %}
             <tr>
                 <td>{{ event.Date }}</td>
-                <td>{{ event.Event_Name }}</td>
+                <td>{{ event.Event_Name }}{% if event.Subtitle %}: {{ event.Subtitle }}{% endif %}</td>
                 <td>{{ event.Status }}</td>
-                <td>{{ event.Venue }}</td>
+                <td>{{ event.Venue }} in {{ event.Location }}</td>
                 <td>{% if event.Finalized %}Yes{% else %}No{% endif %}</td>
                 <td>
                     <div class="action-buttons">

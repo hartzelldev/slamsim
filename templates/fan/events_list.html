@@ -15,7 +15,7 @@
             {% for event in upcoming_events %}
             <li class="list-group-item">
                 <a href="{{ url_for('fan.view_event', event_slug=_slugify(event.Event_Name)) }}">
-                    {{ event.Date }} - {{ event.Event_Name }} - {{ event.Location }}
+                    {{ event.Date }} - {{ event.Event_Name }}{% if event.Subtitle %}: {{ event.Subtitle }}{% endif %} - {{ event.Location }}
                 </a>
             </li>
             {% endfor %}
@@ -31,7 +31,7 @@
             {% for event in finalized_events[:prefs.fan_mode_home_number_events] %}
             <li class="list-group-item">
                 <a href="{{ url_for('fan.view_event', event_slug=_slugify(event.Event_Name)) }}">
-                    {{ event.Date }} - {{ event.Event_Name }} - {{ event.Location }}
+                    {{ event.Date }} - {{ event.Event_Name }}{% if event.Subtitle %}: {{ event.Subtitle }}{% endif %} - {{ event.Location }}
                 </a>
             </li>
             {% else %}

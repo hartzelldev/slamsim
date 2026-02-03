@@ -37,7 +37,7 @@
     </div>
     <ul class="event-list-home">
         {% for event in upcoming_events %}
-        <li>{{ event.Date }} - <strong>{{ event.Event_Name }}</strong> - {{ event.Location }}</li>
+        <li>{{ event.Date }} - <strong>{{ event.Event_Name }}{% if event.Subtitle %}: {{ event.Subtitle }}{% endif %}</strong> - {{ event.Location }}</li>
         {% endfor %}
     </ul>
 </div>
@@ -52,7 +52,7 @@
     </div>
     <ul class="event-list-home">
         {% for event in recent_events %}
-        <li>{{ event.Date }} - <strong><a href="{{ url_for('fan.view_event', event_slug=event.event_slug) }}">{{ event.Event_Name }}</a></strong> - {{ event.Location }}</li>
+        <li>{{ event.Date }} - <strong><a href="{{ url_for('fan.view_event', event_slug=event.event_slug) }}">{{ event.Event_Name }}{% if event.Subtitle %}: {{ event.Subtitle }}{% endif %}</a></strong> - {{ event.Location }}</li>
         {% endfor %}
     </ul>
     <div class="view-all-link">

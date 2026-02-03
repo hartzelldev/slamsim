@@ -14,7 +14,7 @@
             {% for event in events %}
             <li class="list-group-item">
                 <a href="{{ url_for('fan.view_event', event_slug=_slugify(event.Event_Name)) }}">
-                    {{ event.Date }} - {{ event.Event_Name }} - {{ event.Location }}
+                    {{ event.Date }} - {{ event.Event_Name }}{% if event.Subtitle %}: {{ event.Subtitle }}{% endif %} - {{ event.Location }}
                 </a>
             </li>
             {% else %}
