@@ -4,6 +4,13 @@
 
 {% block fan_content %}
 
+{# CUSTOM HOMEPAGE TEXT SECTION #}
+{% if fan_home_custom_text %}
+<div class="home-section custom-text-section">
+    {{ fan_home_custom_text | markdown | safe }}
+</div>
+{% endif %}
+
 {# LATEST NEWS SECTION #}
 {% if prefs.fan_mode_home_show_news != 'Off' and news_posts %}
 <div class="home-section">

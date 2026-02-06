@@ -1,6 +1,6 @@
 import datetime
 from flask import Blueprint, render_template, flash, redirect, url_for
-from src.prefs import load_preferences
+from src.prefs import load_preferences, load_fan_home_custom_text
 from src.wrestlers import load_wrestlers, get_wrestler_by_name, _get_list_from_data_field # Import new helper
 from src.tagteams import load_tagteams, get_tagteam_by_name, _get_members_list_from_team_data
 from src.divisions import load_divisions
@@ -77,6 +77,7 @@ def _sort_key_ignore_the(name):
 def home():
     """Renders the fan home page."""
     prefs = load_preferences()
+    fan_home_custom_text = load_fan_home_custom_text()
 
     # 1. Handle News
     news_posts = []
@@ -142,7 +143,8 @@ def home():
         news_posts=news_posts,
         upcoming_events=upcoming_events,
         recent_events=recent_events,
-        belts=belts
+        belts=belts,
+        fan_home_custom_text=fan_home_custom_text
     )
 
 @fan_bp.route('/wrestler/<string:wrestler_name>')

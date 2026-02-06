@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from werkzeug.utils import secure_filename
-from src.prefs import load_preferences, save_preferences
+from src.prefs import load_preferences, save_preferences, load_fan_home_custom_text, save_fan_home_custom_text
 from src.wrestlers import reset_all_wrestler_records
 from src.tagteams import reset_all_tagteam_records, recalculate_all_tagteam_weights # Import new function
 from src.system import delete_all_temporary_files, get_league_logo_path, LEAGUE_LOGO_FILENAME, INCLUDES_DIR
@@ -17,6 +17,7 @@ AVAILABLE_MODELS = {
 @prefs_bp.route('/preferences', methods=['GET', 'POST'])
 def general_prefs():
     prefs = load_preferences() # Load prefs at the beginning to use for both GET and POST
+    fan_home_custom_text = load_fan_home_custom_text()
 
     if request.method == 'POST':
         league_name = request.form.get('league_name', '').strip()
@@ -51,6 +52,9 @@ def general_prefs():
         # New Weight Unit preference
         weight_unit = request.form.get('weight_unit', 'lbs.')
 
+        # Custom text for Fan Mode homepage
+        new_fan_home_custom_text = request.form.get('fan_home_custom_text', '')
+
         updated_prefs = {
             "league_name": league_name,
             "league_short": league_short,
@@ -79,6 +83,7 @@ def general_prefs():
             "weight_unit": weight_unit # Save new weight unit preference
         }
         save_preferences(updated_prefs)
+        save_fan_home_custom_text(new_fan_home_custom_text)
 
         # Handle logo upload
         if 'league_logo' in request.files:
@@ -114,7 +119,7 @@ def general_prefs():
 
     current_game_date = get_current_working_date().isoformat() # Get the current working date for display
 
-    return render_template('booker/prefs.html', prefs=prefs, league_logo_url=league_logo_url, available_models=AVAILABLE_MODELS, current_game_date=current_game_date)
+    return render_template('booker/prefs.html', prefs=prefs, league_logo_url=league_logo_url, available_models=AVAILABLE_MODELS, current_game_date=current_game_date, fan_home_custom_text=fan_home_custom_text)
 
 @prefs_bp.route('/reset-records', methods=['POST'])
 def reset_records():

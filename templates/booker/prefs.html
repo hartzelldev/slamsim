@@ -55,6 +55,18 @@
 
         <hr class="subsection-divider">
 
+        <legend><h4>League Home Page Custom Text</h4></legend>
+        <div class="form-group">
+            <p>Add custom text or a welcome message to the Fan Mode homepage. Supports Markdown and plain text.</p>
+            <a href="#" id="toggleCustomText" class="btn btn-sm btn-secondary mb-2">Edit Custom Homepage Text</a>
+            <div id="customTextEditor" style="display: none;">
+                <textarea class="form-control" id="fan_home_custom_text" name="fan_home_custom_text" rows="10">{{ fan_home_custom_text }}</textarea>
+                <small class="form-text text-muted">Enter your custom text here. Markdown formatting is supported.</small>
+            </div>
+        </div>
+
+        <hr class="subsection-divider">
+
         <legend><h4>Roster & Events Presentation</h4></legend>
         <div class="form-group form-check">
             <input type="checkbox" class="form-check-input" id="fan_mode_show_records" name="fan_mode_show_records" {% if prefs.fan_mode_show_records %}checked{% endif %}>
@@ -276,6 +288,31 @@
 
     // Update UI when provider changes
     aiProviderSelect.addEventListener('change', updateAIConfigUI);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleButton = document.getElementById('toggleCustomText');
+        const customTextEditor = document.getElementById('customTextEditor');
+
+        toggleButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (customTextEditor.style.display === 'none') {
+                customTextEditor.style.display = 'block';
+                toggleButton.textContent = 'Hide Custom Homepage Text Editor';
+            } else {
+                customTextEditor.style.display = 'none';
+                toggleButton.textContent = 'Edit Custom Homepage Text';
+            }
+        });
+
+        // Initial check if there's content to decide initial state of the editor
+        const customTextarea = document.getElementById('fan_home_custom_text');
+        if (customTextarea && customTextarea.value.trim() !== '') {
+            customTextEditor.style.display = 'block';
+            toggleButton.textContent = 'Hide Custom Homepage Text Editor';
+        }
+    });
 </script>
 
 <hr class="section-divider">

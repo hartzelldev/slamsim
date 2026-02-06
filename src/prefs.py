@@ -3,12 +3,32 @@ import os
 import datetime # Import datetime
 
 PREFS_FILE = 'data/prefs.json'
+FAN_HOME_CUSTOM_TEXT_FILE = 'data/fan_league_home_custom_text.md'
 
 def _get_prefs_file_path():
     """Constructs the absolute path to the preferences file."""
     # Assuming data/prefs.json is relative to the project root
     # For now, it's relative to where the app is run from, adjust if needed.
     return os.path.join(os.getcwd(), PREFS_FILE)
+
+def _get_fan_home_custom_text_file_path():
+    """Constructs the absolute path to the fan home custom text file."""
+    return os.path.join(os.getcwd(), FAN_HOME_CUSTOM_TEXT_FILE)
+
+def load_fan_home_custom_text():
+    """Loads the custom text for the fan mode homepage."""
+    file_path = _get_fan_home_custom_text_file_path()
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return f.read()
+    return ""
+
+def save_fan_home_custom_text(text):
+    """Saves the custom text for the fan mode homepage."""
+    file_path = _get_fan_home_custom_text_file_path()
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(text)
 
 def load_preferences():
     """
