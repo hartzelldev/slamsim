@@ -28,6 +28,7 @@ def general_prefs():
         fan_mode_show_profile_records = 'fan_mode_show_profile_records' in request.form # New preference
         fan_mode_show_contract_info = 'fan_mode_show_contract_info' in request.form # New preference
         fan_mode_roster_sort_order = request.form.get('fan_mode_roster_sort_order', 'Alphabetical')
+        fan_mode_roster_record_type = request.form.get('fan_mode_roster_record_type', 'Singles') # New preference
         fan_mode_show_future_events = 'fan_mode_show_future_events' in request.form
         fan_mode_show_non_match_headers = 'fan_mode_show_non_match_headers' in request.form
         fan_mode_show_quick_results = 'fan_mode_show_quick_results' in request.form
@@ -64,6 +65,7 @@ def general_prefs():
             "fan_mode_show_profile_records": fan_mode_show_profile_records, # New preference
             "fan_mode_show_contract_info": fan_mode_show_contract_info, # New preference
             "fan_mode_roster_sort_order": fan_mode_roster_sort_order,
+            "fan_mode_roster_record_type": fan_mode_roster_record_type, # New preference
             "fan_mode_show_future_events": fan_mode_show_future_events,
             "fan_mode_show_non_match_headers": fan_mode_show_non_match_headers,
             "fan_mode_show_quick_results": fan_mode_show_quick_results,

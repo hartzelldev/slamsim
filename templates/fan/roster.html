@@ -29,7 +29,11 @@
                                                     <a href="{{ static_url_for('fan.view_wrestler', wrestler_name=wrestler.Name) }}">
                                                         {{ wrestler.Name }}
                                                         {% if prefs.fan_mode_show_records %}
-                                                            ({{ wrestler.Singles_Wins | default(0) }}-{{ wrestler.Singles_Losses | default(0) }}-{{ wrestler.Singles_Draws | default(0) }})
+                                                            {% if prefs.fan_mode_roster_record_type == 'Singles' %}
+                                                                ({{ wrestler.Singles_Wins | default(0) }}-{{ wrestler.Singles_Losses | default(0) }}-{{ wrestler.Singles_Draws | default(0) }})
+                                                            {% elif prefs.fan_mode_roster_record_type == 'Overall' %}
+                                                                ({{ wrestler.Total_Wins | default(0) }}-{{ wrestler.Total_Losses | default(0) }}-{{ wrestler.Total_Draws | default(0) }})
+                                                            {% endif %}
                                                         {% endif %}
                                                         {% if wrestler.Belt %}({{ wrestler.get('current_champion_title_display', wrestler.Belt) }}){% endif %}{% if wrestler.display_status %}{{ wrestler.display_status }}{% endif %}
                                                     </a>

@@ -47,6 +47,7 @@ def load_preferences():
         "fan_mode_show_profile_records": True, # New preference
         "fan_mode_show_contract_info": False,  # New preference
         "fan_mode_roster_sort_order": "Alphabetical",
+        "fan_mode_roster_record_type": "Singles", # New preference
         "fan_mode_show_future_events": True,
         "fan_mode_show_non_match_headers": True,
         "fan_mode_show_quick_results": True,
@@ -101,6 +102,7 @@ def save_preferences(prefs_dict):
         {"Pref": "Fan_Mode_Show_Profile_Records", "Value": prefs_dict.get("fan_mode_show_profile_records", True)}, # New preference
         {"Pref": "Fan_Mode_Show_Contract_Info", "Value": prefs_dict.get("fan_mode_show_contract_info", False)}, # New preference
         {"Pref": "Fan_Mode_Roster_Sort_Order", "Value": prefs_dict.get("fan_mode_roster_sort_order", "Alphabetical")},
+        {"Pref": "Fan_Mode_Roster_Record_Type", "Value": prefs_dict.get("fan_mode_roster_record_type", "Singles")}, # New preference
         {"Pref": "Fan_Mode_Show_Future_Events", "Value": prefs_dict.get("fan_mode_show_future_events", True)},
         {"Pref": "Fan_Mode_Show_Non_Match_Headers", "Value": prefs_dict.get("fan_mode_show_non_match_headers", True)},
         {"Pref": "Fan_Mode_Show_Quick_Results", "Value": prefs_dict.get("fan_mode_show_quick_results", True)},

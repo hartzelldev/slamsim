@@ -260,6 +260,8 @@ def roster():
     all_tagteams_raw = load_tagteams()
     all_divisions = load_divisions()
 
+    roster_record_type = prefs.get('fan_mode_roster_record_type', 'Singles')
+
     # Get display preferences for injured wrestlers and suspended roster members
     injured_wrestler_display = prefs.get('fan_mode_injured_wrestler_display', 'Show Normally')
     suspended_roster_display = prefs.get('fan_mode_suspended_roster_display', 'Show Normally')
@@ -289,6 +291,19 @@ def roster():
                 processed_wrestlers.append(wrestler)
             # 'Don't Show' means we skip adding it to processed_wrestlers
         # For other statuses (Inactive, Retired), they are implicitly 'Don't Show' for the fan roster.
+
+        # Calculate overall record if preference is set
+        if roster_record_type == 'Overall':
+            singles_wins = int(wrestler.get('Singles_Wins', 0))
+            singles_losses = int(wrestler.get('Singles_Losses', 0))
+            singles_draws = int(wrestler.get('Singles_Draws', 0))
+            tag_wins = int(wrestler.get('Tag_Wins', 0))
+            tag_losses = int(wrestler.get('Tag_Losses', 0))
+            tag_draws = int(wrestler.get('Tag_Draws', 0))
+
+            wrestler['Total_Wins'] = singles_wins + tag_wins
+            wrestler['Total_Losses'] = singles_losses + tag_losses
+            wrestler['Total_Draws'] = singles_draws + tag_draws
     
     # Filter and modify tag teams based on preferences
     processed_tagteams = []
