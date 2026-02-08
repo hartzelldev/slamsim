@@ -59,7 +59,7 @@ def generate_roster():
         
         # Retrieve API keys directly from environment variables
         google_api_key = os.getenv('SLAMSIM_GOOGLE_KEY')
-        openai_api_key = os.getenv('OPENAI_API_KEY')
+        openai_api_key = os.getenv('SLAMSIM_OPENAI_KEY') # Use SLAMSIM_OPENAI_KEY
 
         api_key_to_use = None
         if model_provider == "Google":
@@ -67,7 +67,7 @@ def generate_roster():
             os.environ["SLAMSIM_GOOGLE_KEY"] = api_key_to_use # Ensure litellm sees it
         elif model_provider == "OpenAI":
             api_key_to_use = openai_api_key
-            os.environ["OPENAI_API_KEY"] = api_key_to_use # Ensure litellm sees it
+            os.environ["SLAMSIM_OPENAI_KEY"] = api_key_to_use # Ensure litellm sees it
 
         if not all([model_provider, model_name, api_key_to_use]):
             flash("AI model preferences are not fully configured. Please check your preferences.", "danger")

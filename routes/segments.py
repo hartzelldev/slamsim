@@ -336,7 +336,7 @@ def ai_generate(event_slug, position):
     
     # Retrieve API keys directly from environment variables
     google_api_key = os.getenv('SLAMSIM_GOOGLE_KEY')
-    openai_api_key = os.getenv('OPENAI_API_KEY')
+    openai_api_key = os.getenv('SLAMSIM_OPENAI_KEY') # Use SLAMSIM_OPENAI_KEY
 
     # Determine which API key to use and set environment variable for litellm
     api_key_to_use = None
@@ -345,7 +345,7 @@ def ai_generate(event_slug, position):
         os.environ["SLAMSIM_GOOGLE_KEY"] = api_key_to_use
     elif ai_provider == 'OpenAI':
         api_key_to_use = openai_api_key
-        os.environ["OPENAI_API_KEY"] = api_key_to_use
+        os.environ["SLAMSIM_OPENAI_KEY"] = api_key_to_use # Use SLAMSIM_OPENAI_KEY
     
     if not ai_model:
         return jsonify({'error': 'AI model not configured in preferences.'}), 400

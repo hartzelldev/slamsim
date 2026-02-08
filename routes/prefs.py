@@ -24,7 +24,7 @@ def general_prefs():
 
     # Check if API keys are set in environment variables
     google_key_is_set = bool(os.getenv('SLAMSIM_GOOGLE_KEY'))
-    openai_key_is_set = bool(os.getenv('OPENAI_API_KEY'))
+    openai_key_is_set = bool(os.getenv('SLAMSIM_OPENAI_KEY')) # Check SLAMSIM_OPENAI_KEY
 
     # Set default values for preferences if they are not already set
     prefs.setdefault('league_name', 'My Awesome League')
@@ -123,7 +123,7 @@ def general_prefs():
         if google_api_key_from_form:
             set_key('.env', 'SLAMSIM_GOOGLE_KEY', google_api_key_from_form)
         if openai_api_key_from_form:
-            set_key('.env', 'OPENAI_API_KEY', openai_api_key_from_form)
+            set_key('.env', 'SLAMSIM_OPENAI_KEY', openai_api_key_from_form) # Set SLAMSIM_OPENAI_KEY
 
         # Handle logo upload
         if 'league_logo' in request.files:
