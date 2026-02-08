@@ -6,11 +6,15 @@ import litellm
 import json
 import html
 import base64
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app # Import current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app
+from dotenv import load_dotenv # Import load_dotenv
 from src.system import get_project_root, DATA_DIR, delete_all_temporary_files
 from src.prefs import load_preferences
 from src.wrestlers import add_wrestler
-from src.static_site_generator import generate_static_site, STATIC_SITE_ZIP_DIR_NAME # Import new functions and constants
+from src.static_site_generator import generate_static_site, STATIC_SITE_ZIP_DIR_NAME
+
+# Load environment variables from .env file
+load_dotenv()
 
 tools_bp = Blueprint('tools', __name__, url_prefix='/tools')
 
@@ -50,19 +54,22 @@ def generate_roster():
     try:
         # Load AI preferences
         prefs = load_preferences()
-        model_provider = prefs.get('ai_provider') # Corrected key
-        model_name = prefs.get('ai_model')        # Corrected key
+        model_provider = prefs.get('ai_provider')
+        model_name = prefs.get('ai_model')
         
-        api_key = None
-        if model_provider == "Google":
-            api_key = prefs.get('google_api_key')
-            os.environ["GEMINI_API_KEY"] = api_key # Set environment variable for litellm
-        elif model_provider == "OpenAI":
-            api_key = prefs.get('openai_api_key')
-            os.environ["OPENAI_API_KEY"] = api_key # Set environment variable for litellm
-        # Add other providers and their respective environment variables if necessary
+        # Retrieve API keys directly from environment variables
+        google_api_key = os.getenv('SLAMSIM_GOOGLE_KEY')
+        openai_api_key = os.getenv('OPENAI_API_KEY')
 
-        if not all([model_provider, model_name, api_key]):
+        api_key_to_use = None
+        if model_provider == "Google":
+            api_key_to_use = google_api_key
+            os.environ["SLAMSIM_GOOGLE_KEY"] = api_key_to_use # Ensure litellm sees it
+        elif model_provider == "OpenAI":
+            api_key_to_use = openai_api_key
+            os.environ["OPENAI_API_KEY"] = api_key_to_use # Ensure litellm sees it
+
+        if not all([model_provider, model_name, api_key_to_use]):
             flash("AI model preferences are not fully configured. Please check your preferences.", "danger")
             return redirect(url_for('tools.ai_roster_generator_form'))
 
@@ -129,7 +136,8 @@ def generate_roster():
             messages=messages,
             tools=tools,
             response_format={"type": "json_object"}, # Instruct API to return JSON
-            temperature=0.7 # A bit of creativity
+            temperature=0.7, # A bit of creativity
+            api_key=api_key_to_use # Pass the API key explicitly
         )
 
         # Extract content from the response

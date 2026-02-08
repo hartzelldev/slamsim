@@ -3,16 +3,20 @@ from src.segments import (
     load_segments, get_segment_by_position, add_segment, update_segment, delete_segment,
     load_summary_content, _slugify, delete_all_segments_for_event,
     load_active_wrestlers, load_active_tagteams, get_match_by_id,
-    validate_match_data, _get_all_wrestlers_involved, _get_all_tag_teams_involved # Added for AI context
+    validate_match_data, _get_all_wrestlers_involved, _get_all_tag_teams_involved
 )
 from src.events import get_event_by_name, get_event_by_slug
 from src.belts import load_belts
-import os # Added for AI API keys
-import litellm # Added for AI API calls
-from src.wrestlers import load_wrestlers # Added for AI context
-from src.tagteams import load_tagteams # Added for AI context
-from src.prefs import load_preferences # Added for AI context
+import os
+import litellm
+from src.wrestlers import load_wrestlers
+from src.tagteams import load_tagteams
+from src.prefs import load_preferences
 import json
+from dotenv import load_dotenv # Import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 segments_bp = Blueprint('segments', __name__, url_prefix='/events/<string:event_slug>/segments')
 
@@ -325,24 +329,29 @@ def ai_generate(event_slug, position):
     sluggified_event_name = _slugify(event_slug)
     print(f"AI Generate: Sluggified event name: {sluggified_event_name}")
 
-    # Load user's AI preferences
+    # Load user's AI preferences (model and provider from prefs.json)
     prefs = load_preferences()
     ai_provider = prefs.get('ai_provider')
     ai_model = prefs.get('ai_model')
-    google_api_key = prefs.get('google_api_key')
-    openai_api_key = prefs.get('openai_api_key')
+    
+    # Retrieve API keys directly from environment variables
+    google_api_key = os.getenv('SLAMSIM_GOOGLE_KEY')
+    openai_api_key = os.getenv('OPENAI_API_KEY')
 
-    # Set API key based on provider
+    # Determine which API key to use and set environment variable for litellm
+    api_key_to_use = None
     if ai_provider == 'Google':
-        os.environ["GEMINI_API_KEY"] = google_api_key
+        api_key_to_use = google_api_key
+        os.environ["SLAMSIM_GOOGLE_KEY"] = api_key_to_use
     elif ai_provider == 'OpenAI':
-        os.environ["OPENAI_API_KEY"] = openai_api_key
+        api_key_to_use = openai_api_key
+        os.environ["OPENAI_API_KEY"] = api_key_to_use
     
     if not ai_model:
         return jsonify({'error': 'AI model not configured in preferences.'}), 400
-    if ai_provider == 'Google' and not google_api_key:
+    if ai_provider == 'Google' and not api_key_to_use:
         return jsonify({'error': 'Google API key not configured in preferences.'}), 400
-    if ai_provider == 'OpenAI' and not openai_api_key:
+    if ai_provider == 'OpenAI' and not api_key_to_use:
         return jsonify({'error': 'OpenAI API key not configured in preferences.'}), 400
 
 
@@ -627,7 +636,7 @@ def ai_generate(event_slug, position):
     ai_summary = "Error: Could not generate summary."
 
     try:
-        response = litellm.completion(model=ai_model, messages=messages)
+        response = litellm.completion(model=ai_model, messages=messages, api_key=api_key_to_use)
         ai_summary = response.choices[0].message.content
     except Exception as e:
         print(f"Error calling Litellm API: {e}")

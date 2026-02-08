@@ -1,11 +1,15 @@
 import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from werkzeug.utils import secure_filename
+from dotenv import load_dotenv, set_key # Import dotenv functions
 from src.prefs import load_preferences, save_preferences, load_fan_home_custom_text, save_fan_home_custom_text
 from src.wrestlers import reset_all_wrestler_records
-from src.tagteams import reset_all_tagteam_records, recalculate_all_tagteam_weights # Import new function
+from src.tagteams import reset_all_tagteam_records, recalculate_all_tagteam_weights
 from src.system import delete_all_temporary_files, get_league_logo_path, LEAGUE_LOGO_FILENAME, INCLUDES_DIR
-from src.date_utils import get_current_working_date # Import the new utility
+from src.date_utils import get_current_working_date
+
+# Load environment variables from .env file
+load_dotenv()
 
 prefs_bp = Blueprint('prefs', __name__, url_prefix='/prefs')
 
@@ -16,19 +20,51 @@ AVAILABLE_MODELS = {
 
 @prefs_bp.route('/preferences', methods=['GET', 'POST'])
 def general_prefs():
-    prefs = load_preferences() # Load prefs at the beginning to use for both GET and POST
+    prefs = load_preferences() # Load prefs from data/prefs.json
+
+    # Check if API keys are set in environment variables
+    google_key_is_set = bool(os.getenv('SLAMSIM_GOOGLE_KEY'))
+    openai_key_is_set = bool(os.getenv('OPENAI_API_KEY'))
+
+    # Set default values for preferences if they are not already set
+    prefs.setdefault('league_name', 'My Awesome League')
+    prefs.setdefault('league_short', 'MAL')
+    prefs.setdefault('fan_mode_show_logo', False)
+    prefs.setdefault('fan_mode_header_name_display', 'Full Name')
+    prefs.setdefault('fan_mode_show_records', False)
+    prefs.setdefault('fan_mode_show_profile_records', False)
+    prefs.setdefault('fan_mode_show_contract_info', False)
+    prefs.setdefault('fan_mode_roster_sort_order', 'Alphabetical')
+    prefs.setdefault('fan_mode_roster_record_type', 'Singles')
+    prefs.setdefault('fan_mode_show_future_events', False)
+    prefs.setdefault('fan_mode_show_non_match_headers', False)
+    prefs.setdefault('fan_mode_show_quick_results', False)
+    prefs.setdefault('fan_mode_home_show_champions', False)
+    prefs.setdefault('fan_mode_home_show_news', 'Show Links Only')
+    prefs.setdefault('fan_mode_home_number_news', 5)
+    prefs.setdefault('fan_mode_home_show_recent_events', False)
+    prefs.setdefault('fan_mode_home_number_events', 5)
+    prefs.setdefault('fan_mode_injured_wrestler_display', 'Show Normally')
+    prefs.setdefault('fan_mode_suspended_roster_display', 'Show Normally')
+    prefs.setdefault('ai_provider', '')
+    prefs.setdefault('ai_model', '')
+    prefs.setdefault('game_date_mode', 'real-time')
+    prefs.setdefault('game_date', get_current_working_date().isoformat()) # Ensure game_date has a default
+    prefs.setdefault('weight_unit', 'lbs.')
+
     fan_home_custom_text = load_fan_home_custom_text()
 
     if request.method == 'POST':
-        league_name = request.form.get('league_name', '').strip()
+        # When processing POST, retrieve values from form, using current prefs as fallback for non-submitted fields
+        league_name = request.form.get('league_name', prefs.get('league_name', '')).strip()
         league_short = request.form.get('league_short', '').strip()
-        fan_mode_show_logo = 'fan_mode_show_logo' in request.form # Checkbox returns 'on' if checked, else not in form
+        fan_mode_show_logo = 'fan_mode_show_logo' in request.form
         fan_mode_header_name_display = request.form.get('fan_mode_header_name_display', 'Full Name')
         fan_mode_show_records = 'fan_mode_show_records' in request.form
-        fan_mode_show_profile_records = 'fan_mode_show_profile_records' in request.form # New preference
-        fan_mode_show_contract_info = 'fan_mode_show_contract_info' in request.form # New preference
+        fan_mode_show_profile_records = 'fan_mode_show_profile_records' in request.form
+        fan_mode_show_contract_info = 'fan_mode_show_contract_info' in request.form
         fan_mode_roster_sort_order = request.form.get('fan_mode_roster_sort_order', 'Alphabetical')
-        fan_mode_roster_record_type = request.form.get('fan_mode_roster_record_type', 'Singles') # New preference
+        fan_mode_roster_record_type = request.form.get('fan_mode_roster_record_type', 'Singles')
         fan_mode_show_future_events = 'fan_mode_show_future_events' in request.form
         fan_mode_show_non_match_headers = 'fan_mode_show_non_match_headers' in request.form
         fan_mode_show_quick_results = 'fan_mode_show_quick_results' in request.form
@@ -43,17 +79,14 @@ def general_prefs():
 
         ai_provider = request.form.get('ai_provider', '')
         ai_model = request.form.get('ai_model', '')
-        google_api_key = request.form.get('google_api_key', '')
-        openai_api_key = request.form.get('openai_api_key', '')
-
-        # New Game Date preferences
-        game_date_mode = request.form.get('game_date_mode', 'real-time')
-        # game_date itself is updated by events/news, not directly here.
         
-        # New Weight Unit preference
+        # Get API keys from form, but do not store them in updated_prefs for prefs.json
+        google_api_key_from_form = request.form.get('google_api_key', '')
+        openai_api_key_from_form = request.form.get('openai_api_key', '')
+
+        game_date_mode = request.form.get('game_date_mode', 'real-time')
         weight_unit = request.form.get('weight_unit', 'lbs.')
 
-        # Custom text for Fan Mode homepage
         new_fan_home_custom_text = request.form.get('fan_home_custom_text', '')
 
         updated_prefs = {
@@ -62,10 +95,10 @@ def general_prefs():
             "fan_mode_show_logo": fan_mode_show_logo,
             "fan_mode_header_name_display": fan_mode_header_name_display,
             "fan_mode_show_records": fan_mode_show_records,
-            "fan_mode_show_profile_records": fan_mode_show_profile_records, # New preference
-            "fan_mode_show_contract_info": fan_mode_show_contract_info, # New preference
+            "fan_mode_show_profile_records": fan_mode_show_profile_records,
+            "fan_mode_show_contract_info": fan_mode_show_contract_info,
             "fan_mode_roster_sort_order": fan_mode_roster_sort_order,
-            "fan_mode_roster_record_type": fan_mode_roster_record_type, # New preference
+            "fan_mode_roster_record_type": fan_mode_roster_record_type,
             "fan_mode_show_future_events": fan_mode_show_future_events,
             "fan_mode_show_non_match_headers": fan_mode_show_non_match_headers,
             "fan_mode_show_quick_results": fan_mode_show_quick_results,
@@ -78,23 +111,25 @@ def general_prefs():
             "fan_mode_suspended_roster_display": fan_mode_suspended_roster_display,
             "ai_provider": ai_provider,
             "ai_model": ai_model,
-            "google_api_key": google_api_key,
-            "openai_api_key": openai_api_key,
-            "game_date_mode": game_date_mode, # Save new preference
-            "game_date": prefs.get("game_date"), # Preserve existing game_date, it's updated elsewhere
-            "weight_unit": weight_unit # Save new weight unit preference
+            # API keys are no longer stored in prefs.json
+            "game_date_mode": game_date_mode,
+            "game_date": prefs.get("game_date"),
+            "weight_unit": weight_unit
         }
         save_preferences(updated_prefs)
         save_fan_home_custom_text(new_fan_home_custom_text)
+
+        # Update API keys in .env file only if provided in the form
+        if google_api_key_from_form:
+            set_key('.env', 'SLAMSIM_GOOGLE_KEY', google_api_key_from_form)
+        if openai_api_key_from_form:
+            set_key('.env', 'OPENAI_API_KEY', openai_api_key_from_form)
 
         # Handle logo upload
         if 'league_logo' in request.files:
             file = request.files['league_logo']
             if file.filename != '':
-                # Ensure the includes directory exists
                 os.makedirs(os.path.join(current_app.root_path, INCLUDES_DIR), exist_ok=True)
-                
-                # Use the predefined filename for the logo
                 filename = secure_filename(LEAGUE_LOGO_FILENAME)
                 file_path = os.path.join(current_app.root_path, INCLUDES_DIR, filename)
                 file.save(file_path)
@@ -110,18 +145,13 @@ def general_prefs():
         flash('Preferences updated successfully!', 'success')
         return redirect(url_for('prefs.general_prefs'))
     
-    # Check if logo exists to display it
     league_logo_url = None
     if os.path.exists(get_league_logo_path()):
-        # Use url_for('static', filename=...) to correctly generate URL for static files
-        # The INCLUDES_DIR is relative to the static folder if configured that way,
-        # or we might need a custom static endpoint if includes is outside static.
-        # For now, assuming 'includes' is directly accessible via static.
         league_logo_url = url_for('static', filename=f'{INCLUDES_DIR}/{LEAGUE_LOGO_FILENAME}')
 
-    current_game_date = get_current_working_date().isoformat() # Get the current working date for display
+    current_game_date = get_current_working_date().isoformat()
 
-    return render_template('booker/prefs.html', prefs=prefs, league_logo_url=league_logo_url, available_models=AVAILABLE_MODELS, current_game_date=current_game_date, fan_home_custom_text=fan_home_custom_text)
+    return render_template('booker/prefs.html', prefs=prefs, league_logo_url=league_logo_url, available_models=AVAILABLE_MODELS, current_game_date=current_game_date, fan_home_custom_text=fan_home_custom_text, google_key_is_set=google_key_is_set, openai_key_is_set=openai_key_is_set)
 
 @prefs_bp.route('/reset-records', methods=['POST'])
 def reset_records():
