@@ -113,6 +113,11 @@
             <small class="form-text text-muted">Display headers for segments like Promos, Interviews, etc., on event pages.</small>
         </div>
         <div class="form-group form-check">
+            <input type="checkbox" class="form-check-input" id="fan_mode_show_event_card" name="fan_mode_show_event_card" {% if prefs.fan_mode_show_event_card %}checked{% endif %}>
+            <label class="form-check-label" for="fan_mode_show_event_card">Display Event Card Section</label>
+            <small class="form-text text-muted">Show the full event card with participants on event pages.</small>
+        </div>
+        <div class="form-group form-check">
             <input type="checkbox" class="form-check-input" id="fan_mode_show_quick_results" name="fan_mode_show_quick_results" {% if prefs.fan_mode_show_quick_results %}checked{% endif %}>
             <label class="form-check-label" for="fan_mode_show_quick_results">Display Quick Results Section</label>
             <small class="form-text text-muted">Show a quick results summary at the bottom of past event pages.</small>

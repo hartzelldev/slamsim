@@ -38,6 +38,7 @@ def general_prefs():
     prefs.setdefault('fan_mode_roster_record_type', 'Singles')
     prefs.setdefault('fan_mode_show_future_events', False)
     prefs.setdefault('fan_mode_show_non_match_headers', False)
+    prefs.setdefault('fan_mode_show_event_card', True) # New preference
     prefs.setdefault('fan_mode_show_quick_results', False)
     prefs.setdefault('fan_mode_home_show_champions', False)
     prefs.setdefault('fan_mode_home_show_news', 'Show Links Only')
@@ -67,6 +68,7 @@ def general_prefs():
         fan_mode_roster_record_type = request.form.get('fan_mode_roster_record_type', 'Singles')
         fan_mode_show_future_events = 'fan_mode_show_future_events' in request.form
         fan_mode_show_non_match_headers = 'fan_mode_show_non_match_headers' in request.form
+        fan_mode_show_event_card = 'fan_mode_show_event_card' in request.form # New preference
         fan_mode_show_quick_results = 'fan_mode_show_quick_results' in request.form
         fan_mode_home_show_champions = 'fan_mode_home_show_champions' in request.form
         fan_mode_home_show_news = request.form.get('fan_mode_home_show_news', 'Show Links Only')
@@ -101,6 +103,7 @@ def general_prefs():
             "fan_mode_roster_record_type": fan_mode_roster_record_type,
             "fan_mode_show_future_events": fan_mode_show_future_events,
             "fan_mode_show_non_match_headers": fan_mode_show_non_match_headers,
+            "fan_mode_show_event_card": fan_mode_show_event_card, # New preference
             "fan_mode_show_quick_results": fan_mode_show_quick_results,
             "fan_mode_home_show_champions": fan_mode_home_show_champions,
             "fan_mode_home_show_news": fan_mode_home_show_news,

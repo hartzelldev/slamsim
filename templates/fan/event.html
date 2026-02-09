@@ -22,6 +22,7 @@
         </div>
     </div>
 
+    {% if prefs.fan_mode_show_event_card %}
     <div class="details-card full-width">
         <div class="card-header"><h3>Event Card</h3></div>
         <div class="card-content">
@@ -35,6 +36,7 @@
             </ul>
         </div>
     </div>
+    {% endif %}
     
     {% if event_summary_content %}
     <div class="details-card full-width">
