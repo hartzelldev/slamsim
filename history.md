@@ -4,6 +4,29 @@ This document tracks the major changes, new features, and bug fixes for the 1.0 
 
 ---
 
+## v1.0 Beta 6 - Security, SSG, and More (2026-02-11)
+
+This release features the static league site generator, as well as new Fan Mode preferences, a security enhancement, and bug fixes.
+
+
+### New Feature: Static Site Generator (SSG)
+- Introduced full league static site generation capabilities.
+- Creates a full web site for uploading and sharing (great for multi-player fantasy leagues operated by a single admin).
+
+### Security enhancement: AI settings
+- Moved AI API keys out of prefs.json to .env files to reduce the risk of key exposure.
+- Standardized the environment variables to eliminate the risk of key conflict.  
+
+### Enhancement: New Fan Mode preferences
+- Implemented a toggle for event card displays (similar to the toggle for Quick Results).  
+- Added options to display either wrestler overall records or division records directly on the Fan Roster.  
+- Along with new wrestler and tag-team statuses, there are now preferences to determine how these statuses are displayed.
+
+### Bug Fixes
+- Improved the Flask exit handling to ensure clean process termination.  
+- Resolved multiple issues involving list parsing and string "split" errors.  
+- Corrected a bug in the automated calculation of win/loss records.
+
 ## v1.0 Beta 5 (2025-12-05)
 
 This release concentrates on enhancements and bug fixes.
@@ -28,7 +51,6 @@ This release concentrates on enhancements and bug fixes.
 - Fixed a bug where tagteam data was being deleted when updating that team.
 - Fixed a bug (hopefully) where wrestler names and signature moves were not getting passed to the AI for match generation.
 - Fixed a bug in Booker Mode where Belt History was not using game_date, always using current_date instead.
-
 
 ## V1.0 Beta 4 (2025-11-22)
 
