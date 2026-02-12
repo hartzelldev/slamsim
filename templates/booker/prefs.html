@@ -198,8 +198,8 @@
             <label for="ai_provider">AI Provider</label>
             <select class="form-control" id="ai_provider" name="ai_provider">
                 <option value="">-- Select Provider --</option>
-                {% for provider in available_models.keys() %}
-                <option value="{{ provider }}" {% if prefs.ai_provider == provider %}selected{% endif %}>{{ provider }}</option>
+                {% for provider_name, models in available_models.items() %}
+                <option value="{{ provider_name }}" {% if prefs.ai_provider == provider_name %}selected{% endif %}>{{ provider_name }}</option>
                 {% endfor %}
             </select>
             <small class="form-text text-muted">Choose the AI service to use for assistant features.</small>
@@ -220,6 +220,10 @@
             <label for="openai_api_key">OpenAI API Key</label>
             <input type="password" class="form-control" id="openai_api_key" name="openai_api_key" value="" {% if openai_key_is_set %}placeholder="***************************************"{% endif %}>
             <small class="form-text text-muted">Enter your OpenAI API Key for GPT models.</small>
+        </div>
+        <div class="form-group mt-3">
+            <a href="{{ url_for('prefs.manage_api_providers') }}" class="btn btn-secondary btn-sm">Manage AI Providers and Models</a>
+            <small class="form-text text-muted">Add, edit, or remove AI providers and their available models.</small>
         </div>
     </fieldset>
 
@@ -274,9 +278,9 @@
             if (models) {
                 models.forEach(model => {
                     const option = document.createElement('option');
-                    option.value = model;
-                    option.textContent = model;
-                    if (model === currentModel) {
+                    option.value = model.id; // Use model.id for the option value
+                    option.textContent = model.name; // Use model.name for the displayed text
+                    if (model.id === currentModel) { // Compare with model.id
                         option.selected = true;
                     }
                     aiModelSelect.appendChild(option);
@@ -284,9 +288,9 @@
             }
 
             // Show the relevant API key field
-            if (selectedProvider === "Google") {
+            if (selectedProvider.includes("Google")) { // Check for "Google" in provider name
                 googleApiKeyGroup.style.display = 'block';
-            } else if (selectedProvider === "OpenAI") {
+            } else if (selectedProvider.includes("OpenAI")) { // Check for "OpenAI" in provider name
                 openaiApiKeyGroup.style.display = 'block';
             }
         } else {

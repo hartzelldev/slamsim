@@ -1,11 +1,12 @@
 import os
+import json # Import json
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv, set_key # Import dotenv functions
 from src.prefs import load_preferences, save_preferences, load_fan_home_custom_text, save_fan_home_custom_text
 from src.wrestlers import reset_all_wrestler_records
 from src.tagteams import reset_all_tagteam_records, recalculate_all_tagteam_weights
-from src.system import delete_all_temporary_files, get_league_logo_path, LEAGUE_LOGO_FILENAME, INCLUDES_DIR
+from src.system import delete_all_temporary_files, get_league_logo_path, LEAGUE_LOGO_FILENAME, INCLUDES_DIR, get_project_root
 from src.date_utils import get_current_working_date
 
 # Load environment variables from .env file
@@ -13,14 +14,44 @@ load_dotenv()
 
 prefs_bp = Blueprint('prefs', __name__, url_prefix='/prefs')
 
-AVAILABLE_MODELS = {
-    "Google": ["gemini-2.5-pro", "gemini-2.5-flash"],
-    "OpenAI": ["gpt-5.0", "gpt-4.0", "gpt-3.5"]
-}
+API_PROVIDERS_FILE_RELATIVE_TO_ROOT = 'includes/api_providers.json'
+
+def _get_api_providers_file_path():
+    """Constructs the absolute path to the API providers configuration file."""
+    return os.path.join(get_project_root(), API_PROVIDERS_FILE_RELATIVE_TO_ROOT)
+
+def _load_raw_api_providers_config():
+    """Loads the raw API providers configuration as a list of dictionaries."""
+    file_path = _get_api_providers_file_path()
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                raw_config = json.load(f).get('providers', [])
+                return raw_config
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {file_path}. Returning empty list.")
+            return []
+    return []
+
+def _save_api_providers_config(providers_list):
+    """Saves the API providers configuration to the JSON file."""
+    file_path = _get_api_providers_file_path()
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump({"providers": providers_list}, f, indent=4)
+
+def _load_api_providers_config():
+    """Loads the API providers and models from the JSON configuration file, transformed for template use."""
+    raw_config = _load_raw_api_providers_config()
+    providers_dict = {}
+    for provider in raw_config:
+        providers_dict[provider['name']] = provider['models']
+    return providers_dict
 
 @prefs_bp.route('/preferences', methods=['GET', 'POST'])
 def general_prefs():
     prefs = load_preferences() # Load prefs from data/prefs.json
+    all_available_models = _load_api_providers_config() # Load from JSON config
 
     # Check if API keys are set in environment variables
     google_key_is_set = bool(os.getenv('SLAMSIM_GOOGLE_KEY'))
@@ -154,7 +185,144 @@ def general_prefs():
 
     current_game_date = get_current_working_date().isoformat()
 
-    return render_template('booker/prefs.html', prefs=prefs, league_logo_url=league_logo_url, available_models=AVAILABLE_MODELS, current_game_date=current_game_date, fan_home_custom_text=fan_home_custom_text, google_key_is_set=google_key_is_set, openai_key_is_set=openai_key_is_set)
+    return render_template('booker/prefs.html', prefs=prefs, league_logo_url=league_logo_url, available_models=all_available_models, current_game_date=current_game_date, fan_home_custom_text=fan_home_custom_text, google_key_is_set=google_key_is_set, openai_key_is_set=openai_key_is_set)
+
+@prefs_bp.route('/api_providers', methods=['GET'])
+def manage_api_providers():
+    providers = _load_raw_api_providers_config()
+    return render_template('booker/manage_api_providers.html', providers=providers)
+
+@prefs_bp.route('/api_providers/add_provider', methods=['POST'])
+def add_api_provider():
+    provider_name = request.form.get('provider_name').strip()
+    if not provider_name:
+        flash('Provider name cannot be empty.', 'danger')
+        return redirect(url_for('prefs.manage_api_providers'))
+
+    providers = _load_raw_api_providers_config()
+    if any(p['name'].lower() == provider_name.lower() for p in providers):
+        flash(f'Provider "{provider_name}" already exists.', 'danger')
+        return redirect(url_for('prefs.manage_api_providers'))
+
+    providers.append({"name": provider_name, "models": []})
+    _save_api_providers_config(providers)
+    flash(f'Provider "{provider_name}" added successfully!', 'success')
+    return redirect(url_for('prefs.manage_api_providers'))
+
+@prefs_bp.route('/api_providers/add_model/<string:provider_name>', methods=['POST'])
+def add_api_model(provider_name):
+    model_id = request.form.get('model_id').strip()
+    model_name = request.form.get('model_name').strip()
+
+    if not model_id or not model_name:
+        flash('Model ID and Name cannot be empty.', 'danger')
+        return redirect(url_for('prefs.manage_api_providers'))
+
+    providers = _load_raw_api_providers_config()
+    for provider in providers:
+        if provider['name'] == provider_name:
+            if any(m['id'].lower() == model_id.lower() for m in provider['models']):
+                flash(f'Model ID "{model_id}" already exists for {provider_name}.', 'danger')
+                return redirect(url_for('prefs.manage_api_providers'))
+            provider['models'].append({"id": model_id, "name": model_name})
+            _save_api_providers_config(providers)
+            flash(f'Model "{model_name}" added to {provider_name} successfully!', 'success')
+            return redirect(url_for('prefs.manage_api_providers'))
+    
+    flash(f'Provider "{provider_name}" not found.', 'danger')
+    return redirect(url_for('prefs.manage_api_providers'))
+
+@prefs_bp.route('/api_providers/edit_provider/<string:original_provider_name>', methods=['POST'])
+def edit_api_provider(original_provider_name):
+    new_provider_name = request.form.get('new_provider_name').strip()
+    if not new_provider_name:
+        flash('Provider name cannot be empty.', 'danger')
+        return redirect(url_for('prefs.manage_api_providers'))
+
+    providers = _load_raw_api_providers_config()
+    found = False
+    for provider in providers:
+        if provider['name'] == original_provider_name:
+            if any(p['name'].lower() == new_provider_name.lower() for p in providers if p['name'] != original_provider_name):
+                flash(f'Provider "{new_provider_name}" already exists.', 'danger')
+                return redirect(url_for('prefs.manage_api_providers'))
+            provider['name'] = new_provider_name
+            found = True
+            break
+    
+    if found:
+        _save_api_providers_config(providers)
+        flash(f'Provider "{original_provider_name}" updated to "{new_provider_name}" successfully!', 'success')
+    else:
+        flash(f'Provider "{original_provider_name}" not found.', 'danger')
+    return redirect(url_for('prefs.manage_api_providers'))
+
+@prefs_bp.route('/api_providers/edit_model/<string:provider_name>/<string:original_model_id>', methods=['POST'])
+def edit_api_model(provider_name, original_model_id):
+    new_model_id = request.form.get('new_model_id').strip()
+    new_model_name = request.form.get('new_model_name').strip()
+
+    if not new_model_id or not new_model_name:
+        flash('Model ID and Name cannot be empty.', 'danger')
+        return redirect(url_for('prefs.manage_api_providers'))
+
+    providers = _load_raw_api_providers_config()
+    found_provider = False
+    found_model = False
+    for provider in providers:
+        if provider['name'] == provider_name:
+            found_provider = True
+            for model in provider['models']:
+                if model['id'] == original_model_id:
+                    if any(m['id'].lower() == new_model_id.lower() for m in provider['models'] if m['id'] != original_model_id):
+                        flash(f'Model ID "{new_model_id}" already exists for {provider_name}.', 'danger')
+                        return redirect(url_for('prefs.manage_api_providers'))
+                    model['id'] = new_model_id
+                    model['name'] = new_model_name
+                    found_model = True
+                    break
+            break
+    
+    if found_provider and found_model:
+        _save_api_providers_config(providers)
+        flash(f'Model "{original_model_id}" updated to "{new_model_id}" for {provider_name} successfully!', 'success')
+    else:
+        flash(f'Model "{original_model_id}" not found for provider "{provider_name}".', 'danger')
+    return redirect(url_for('prefs.manage_api_providers'))
+
+@prefs_bp.route('/api_providers/delete_provider/<string:provider_name>', methods=['POST'])
+def delete_api_provider(provider_name):
+    providers = _load_raw_api_providers_config()
+    original_len = len(providers)
+    providers = [p for p in providers if p['name'] != provider_name]
+    
+    if len(providers) < original_len:
+        _save_api_providers_config(providers)
+        flash(f'Provider "{provider_name}" deleted successfully!', 'success')
+    else:
+        flash(f'Provider "{provider_name}" not found.', 'danger')
+    return redirect(url_for('prefs.manage_api_providers'))
+
+@prefs_bp.route('/api_providers/delete_model/<string:provider_name>/<string:model_id>', methods=['POST'])
+def delete_api_model(provider_name, model_id):
+    providers = _load_raw_api_providers_config()
+    found_provider = False
+    found_model = False
+    for provider in providers:
+        if provider['name'] == provider_name:
+            found_provider = True
+            original_len = len(provider['models'])
+            provider['models'] = [m for m in provider['models'] if m['id'] != model_id]
+            if len(provider['models']) < original_len:
+                found_model = True
+            break
+    
+    if found_provider and found_model:
+        _save_api_providers_config(providers)
+        flash(f'Model "{model_id}" deleted from {provider_name} successfully!', 'success')
+    else:
+        flash(f'Model "{model_id}" not found for provider "{provider_name}".', 'danger')
+    return redirect(url_for('prefs.manage_api_providers'))
 
 @prefs_bp.route('/reset-records', methods=['POST'])
 def reset_records():

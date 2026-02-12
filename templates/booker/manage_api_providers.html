@@ -1,0 +1,208 @@
+{% extends "booker/_booker_base.html" %}
+
+{% block title %}Manage AI Providers{% endblock %}
+
+{% block content %}
+<div class="header-bar">
+    <h2>Manage AI Providers and Models</h2>
+    <div class="header-controls">
+        <a href="{{ url_for('prefs.general_prefs') }}" class="btn btn-secondary">Back to General Preferences</a>
+    </div>
+</div>
+
+<div class="content-section">
+    <h3>Current AI Providers and Models</h3>
+    {% if providers %}
+        {% for provider in providers %}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>{{ provider.name }}</h4>
+                <div>
+                    <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#editProviderModal"
+                            data-provider-name="{{ provider.name }}">Edit Provider</button>
+                    <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#addModelModal"
+                            data-provider-name="{{ provider.name }}">Add Model</button>
+                    <form action="{{ url_for('prefs.delete_api_provider', provider_name=provider.name) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete the provider {{ provider.name }} and all its models?');">Delete Provider</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if provider.models %}
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                            <th>Model ID</th>
+                            <th>Model Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for model in provider.models %}
+                        <tr>
+                            <td>{{ model.id }}</td>
+                            <td>{{ model.name }}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModelModal"
+                                        data-provider-name="{{ provider.name }}" data-model-id="{{ model.id }}" data-model-name="{{ model.name }}">Edit Model</button>
+                                <form action="{{ url_for('prefs.delete_api_model', provider_name=provider.name, model_id=model.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete the model {{ model.name }} ({{ model.id }}) from {{ provider.name }}?');">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>No models configured for this provider.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No AI providers configured yet.</p>
+    {% endif %}
+
+    <hr>
+
+    <h3>Add New AI Provider</h3>
+    <form action="{{ url_for('prefs.add_api_provider') }}" method="POST" class="form-inline mb-4">
+        <div class="form-group mr-2">
+            <label for="new_provider_name" class="sr-only">Provider Name</label>
+            <input type="text" class="form-control" id="new_provider_name" name="provider_name" placeholder="New Provider Name" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Provider</button>
+    </form>
+</div>
+
+<!-- Modals for Edit Provider, Add Model, Edit Model -->
+
+<!-- Edit Provider Modal -->
+<div class="modal fade" id="editProviderModal" tabindex="-1" role="dialog" aria-labelledby="editProviderModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProviderModalLabel">Edit Provider</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="editProviderForm" method="POST">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="modal_new_provider_name">New Provider Name</label>
+                        <input type="text" class="form-control" id="modal_new_provider_name" name="new_provider_name" required>
+                        <input type="hidden" id="modal_original_provider_name" name="original_provider_name">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Model Modal -->
+<div class="modal fade" id="addModelModal" tabindex="-1" role="dialog" aria-labelledby="addModelModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModelModalLabel">Add Model to <span id="addModelProviderName"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="addModelForm" method="POST">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="modal_add_model_id">Model ID</label>
+                        <input type="text" class="form-control" id="modal_add_model_id" name="model_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_add_model_name">Model Name</label>
+                        <input type="text" class="form-control" id="modal_add_model_name" name="model_name" required>
+                    </div>
+                    <input type="hidden" id="modal_add_model_provider_name" name="provider_name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add Model</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Model Modal -->
+<div class="modal fade" id="editModelModal" tabindex="-1" role="dialog" aria-labelledby="editModelModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModelModalLabel">Edit Model for <span id="editModelProviderName"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="editModelForm" method="POST">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="modal_edit_model_id">Model ID</label>
+                        <input type="text" class="form-control" id="modal_edit_model_id" name="new_model_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_edit_model_name">Model Name</label>
+                        <input type="text" class="form-control" id="modal_edit_model_name" name="new_model_name" required>
+                    </div>
+                    <input type="hidden" id="modal_edit_model_provider_name" name="provider_name">
+                    <input type="hidden" id="modal_original_model_id" name="original_model_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // JavaScript for handling modals
+    $('#editProviderModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var providerName = button.data('provider-name'); // Extract info from data-* attributes
+        var modal = $(this);
+        modal.find('.modal-title').text('Edit Provider: ' + providerName);
+        modal.find('#modal_new_provider_name').val(providerName);
+        modal.find('#modal_original_provider_name').val(providerName);
+        modal.find('#editProviderForm').attr('action', '{{ url_for('prefs.edit_api_provider', original_provider_name='_provider_name_') }}'.replace('_provider_name_', encodeURIComponent(providerName)));
+    });
+
+    $('#addModelModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var providerName = button.data('provider-name');
+        var modal = $(this);
+        modal.find('#addModelProviderName').text(providerName);
+        modal.find('#modal_add_model_provider_name').val(providerName);
+        modal.find('#addModelForm').attr('action', '{{ url_for('prefs.add_api_model', provider_name='_provider_name_') }}'.replace('_provider_name_', encodeURIComponent(providerName)));
+        modal.find('#modal_add_model_id').val(''); // Clear previous input
+        modal.find('#modal_add_model_name').val(''); // Clear previous input
+    });
+
+    $('#editModelModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var providerName = button.data('provider-name');
+        var modelId = button.data('model-id');
+        var modelName = button.data('model-name');
+        var modal = $(this);
+        modal.find('#editModelProviderName').text(providerName);
+        modal.find('.modal-title').text('Edit Model: ' + modelName + ' (' + modelId + ')');
+        modal.find('#modal_edit_model_id').val(modelId);
+        modal.find('#modal_edit_model_name').val(modelName);
+        modal.find('#modal_edit_model_provider_name').val(providerName);
+        modal.find('#modal_original_model_id').val(modelId);
+        modal.find('#editModelForm').attr('action', '{{ url_for('prefs.edit_api_model', provider_name='_provider_name_', original_model_id='_model_id_') }}'.replace('_provider_name_', encodeURIComponent(providerName)).replace('_model_id_', encodeURIComponent(modelId)));
+    });
+</script>
+{% endblock %}
