@@ -221,13 +221,13 @@ def view_event(event_slug):
         flash(f"Event '{event_slug}' not found.", 'danger')
         return redirect(static_url_for('fan.home')) # Redirect to fan home if event not found
 
-    segments = load_segments(_slugify(event_slug))
+    segments = load_segments(event_slug)
     segments.sort(key=lambda s: s.get('position', 9999)) # Sort segments by position
 
     # Iterate through segments to merge match visibility data
     for segment in segments:
         if segment.get('type') == 'Match' and segment.get('match_id'):
-            match_data = get_match_by_id(_slugify(event_slug), segment['match_id'])
+            match_data = get_match_by_id(event_slug, segment['match_id'])
             if match_data and 'match_visibility' in match_data:
                 # Merge visibility flags into the segment dictionary
                 segment['on_card'] = not match_data['match_visibility'].get('hide_from_card', False)
@@ -414,6 +414,7 @@ def events_list():
     if prefs.get('fan_mode_show_future_events'):
         for event in all_events:
             if event.get('Status') == 'Future':
+                event['event_slug'] = _slugify(event.get('Event_Name', '')) # Add slug
                 upcoming_events.append(event)
         # Sort upcoming events by date ascending
         upcoming_events.sort(key=lambda e: datetime.datetime.strptime(e.get('Date', '9999-12-31'), '%Y-%m-%d'))
@@ -421,6 +422,7 @@ def events_list():
     finalized_events = []
     for event in all_events:
         if event.get('Finalized') == True:
+            event['event_slug'] = _slugify(event.get('Event_Name', '')) # Add slug
             finalized_events.append(event)
     # Sort finalized events by date descending (newest first)
     finalized_events.sort(key=lambda e: datetime.datetime.strptime(e.get('Date', '1900-01-01'), '%Y-%m-%d'), reverse=True)
@@ -450,6 +452,7 @@ def archive_by_year(year):
             try:
                 event_year = datetime.datetime.strptime(event_date_str, '%Y-%m-%d').year
                 if event_year == year:
+                    event['event_slug'] = _slugify(event.get('Event_Name', '')) # Add slug
                     archive_events.append(event)
             except ValueError:
                 # Handle cases where date might be malformed, skip such events

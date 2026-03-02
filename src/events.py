@@ -49,11 +49,27 @@ def get_event_by_name(event_name):
     return None
 
 def get_event_by_slug(event_slug):
-    """Retrieves a single event by its slugified name."""
+    """
+    Retrieves a single event by its slugified name.
+    Includes a fallback to match against the raw event name (case-insensitive)
+    if the slugified name doesn't yield a result, to handle potential inconsistencies.
+    """
     events = load_events()
+    
+    # First, try to find by slugified name (primary method)
     for event in events:
         if _slugify(event.get('Event_Name', '')) == event_slug:
             return event
+    
+    # Fallback: If not found by slug, try to match against the raw event name
+    # This handles cases where the URL might have been generated with the raw name,
+    # or if there's a subtle mismatch in slugification.
+    for event in events:
+        # Normalize the event_slug by replacing hyphens with spaces for comparison
+        normalized_slug_for_comparison = event_slug.replace('-', ' ').lower()
+        if event.get('Event_Name', '').lower() == normalized_slug_for_comparison:
+            return event
+            
     return None
 
 def add_event(event_data):
