@@ -44,4 +44,5 @@ secrets.json
 includes/tmp/
 data/
 !data/.gitkeep
+static_site_zips/
 
