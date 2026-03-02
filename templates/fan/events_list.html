@@ -14,7 +14,7 @@
         <ul class="list-group list-group-flush">
             {% for event in upcoming_events %}
             <li class="list-group-item">
-                <a href="{{ url_for('fan.view_event', event_slug=_slugify(event.Event_Name)) }}">
+                <a href="{{ static_url_for('fan.view_event', event_slug=event.event_slug) }}">
                     {{ event.Date }} - {{ event.Event_Name }}{% if event.Subtitle %}: {{ event.Subtitle }}{% endif %} - {{ event.Location }}
                 </a>
             </li>
@@ -30,7 +30,7 @@
         <ul class="list-group list-group-flush">
             {% for event in finalized_events[:prefs.fan_mode_home_number_events] %}
             <li class="list-group-item">
-                <a href="{{ url_for('fan.view_event', event_slug=_slugify(event.Event_Name)) }}">
+                <a href="{{ static_url_for('fan.view_event', event_slug=event.event_slug) }}">
                     {{ event.Date }} - {{ event.Event_Name }}{% if event.Subtitle %}: {{ event.Subtitle }}{% endif %} - {{ event.Location }}
                 </a>
             </li>
@@ -48,7 +48,7 @@
             <ul class="list-inline">
                 {% for year in years %}
                 <li class="list-inline-item">
-                    <a href="{{ url_for('fan.archive_by_year', year=year) }}" class="btn btn-outline-primary btn-sm mb-2">
+                    <a href="{{ static_url_for('fan.archive_by_year', year=year) }}" class="btn btn-outline-primary btn-sm mb-2">
                         {{ year }}
                     </a>
                 </li>

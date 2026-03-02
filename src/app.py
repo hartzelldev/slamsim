@@ -13,7 +13,10 @@ from routes.booker import booker_bp # Import the new booker blueprint
 from routes.fan import fan_bp       # Import the new fan blueprint
 from routes.tools import tools_bp   # Import the new tools blueprint
 from src.system import INCLUDES_DIR, LEAGUE_LOGO_FILENAME # Import INCLUDES_DIR and LEAGUE_LOGO_FILENAME
-from src.static_site_generator import STATIC_SITE_OUTPUT_DIR_NAME # Import for static_url_map
+from src.static_site_generator import (
+    STATIC_SITE_OUTPUT_DIR_NAME, # Import for context
+    WRESTLERS_SUBDIR, TAGTEAMS_SUBDIR, EVENTS_SUBDIR, CHAMPIONSHIPS_SUBDIR, NEWS_SUBDIR, ARCHIVE_SUBDIR
+)
 
 app = Flask(__name__, template_folder='../templates')
 app.config['SECRET_KEY'] = 'a_very_secret_key_for_flash_messages'
@@ -38,51 +41,85 @@ app.register_blueprint(tools_bp)   # Register the tools blueprint
 def markdown_filter(text):
     return markdown.markdown(text)
 
-# Before request handler to set static_export_mode based on a custom header
+# Mapping Flask endpoints to their static file paths (relative to STATIC_SITE_OUTPUT_DIR_NAME)
+# Use placeholders for dynamic parts that will be filled by static_url_for_func
+STATIC_PATH_MAP = {
+    'fan.home': 'index.html',
+    'fan.roster': os.path.join(WRESTLERS_SUBDIR, 'index.html'),
+    'fan.events_list': os.path.join(EVENTS_SUBDIR, 'index.html'),
+    'fan.champions_list': os.path.join(CHAMPIONSHIPS_SUBDIR, 'index.html'),
+    'fan.news_list': os.path.join(NEWS_SUBDIR, 'index.html'),
+    'fan.view_wrestler': os.path.join(WRESTLERS_SUBDIR, '{wrestler_name_slug}.html'),
+    'fan.view_tagteam': os.path.join(TAGTEAMS_SUBDIR, '{tagteam_name_slug}.html'),
+    'fan.view_event': os.path.join(EVENTS_SUBDIR, '{event_slug}.html'),
+    'fan.belt_history': os.path.join(CHAMPIONSHIPS_SUBDIR, '{belt_id_slug}.html'),
+    'fan.view_news': os.path.join(NEWS_SUBDIR, '{news_id}.html'),
+    'fan.archive_by_year': os.path.join(EVENTS_SUBDIR, ARCHIVE_SUBDIR, '{year}.html'),
+    'fan.news_archive_by_year': os.path.join(NEWS_SUBDIR, ARCHIVE_SUBDIR, '{year}.html'),
+}
+
+# Before request handler to set static_export_mode and current_static_path
 @app.before_request
 def set_static_export_mode():
     g.static_export_mode = request.headers.get('X-Static-Export') == 'true'
+    # Get the static path of the page currently being rendered from the header
+    g.current_static_path = request.headers.get('X-Static-Path')
+    if g.static_export_mode and not g.current_static_path:
+        # Fallback if header is missing (shouldn't happen if generator is updated)
+        print("Warning: X-Static-Path header missing during static export. Assuming root path.")
+        g.current_static_path = 'index.html' # Default to root for relative path calculation
 
 # Context processor to make static_export_mode and a static_url_for available in templates
 @app.context_processor
 def inject_static_export_mode_and_urls():
     static_export = getattr(g, 'static_export_mode', False)
-    
+    current_static_path = getattr(g, 'current_static_path', 'index.html') # Default to root if not set
+
+    def _get_relative_url(current_page_static_path, target_static_file_path):
+        """Calculates the relative path from current_page_static_path to target_static_file_path."""
+        # current_page_static_path example: 'wrestlers/john-cena.html'
+        # target_static_file_path example: 'static/style.css' or 'index.html'
+
+        # Get the directory of the current page
+        current_dir = os.path.dirname(current_page_static_path)
+        
+        # Calculate the relative path
+        return os.path.relpath(target_static_file_path, start=current_dir)
+
     def static_url_for_func(endpoint, **values):
-        # If in static export mode, try to map to a static filename
         if static_export:
-            # Base fan pages
-            if endpoint == 'fan.home': return 'index.html'
-            if endpoint == 'fan.roster': return 'roster.html'
-            if endpoint == 'fan.events_list': return 'events.html'
-            if endpoint == 'fan.champions_list': return 'champions.html'
-            if endpoint == 'fan.news_list': return 'news.html'
-
-            # Detail pages
-            if endpoint == 'fan.view_wrestler' and 'wrestler_name' in values:
-                return f"wrestler-{_slugify(values['wrestler_name'])}.html"
-            if endpoint == 'fan.view_tagteam' and 'tagteam_name' in values:
-                return f"tagteam-{_slugify(values['tagteam_name'])}.html"
-            if endpoint == 'fan.view_event' and 'event_slug' in values:
-                return f"event-{values['event_slug']}.html"
-            if endpoint == 'fan.belt_history' and 'belt_id' in values:
-                return f"belt-{values['belt_id']}.html"
-            if endpoint == 'fan.view_news' and 'news_id' in values:
-                return f"news-{values['news_id']}.html"
+            target_static_file_path = None
             
-            # Archive pages
-            if endpoint == 'fan.archive_by_year' and 'year' in values:
-                return f"events-archive-{values['year']}.html"
-            if endpoint == 'fan.news_archive_by_year' and 'year' in values:
-                return f"news-archive-{values['year']}.html"
-
-            # For static assets, ensure url_for('static', ...) still works correctly
             if endpoint == 'static':
-                return url_for(endpoint, **values)
+                filename = values.get('filename')
+                if filename:
+                    target_static_file_path = os.path.join('static', filename)
+            elif endpoint in STATIC_PATH_MAP:
+                path_template = STATIC_PATH_MAP[endpoint]
+                # Fill in dynamic parts for detail pages
+                if endpoint == 'fan.view_wrestler':
+                    target_static_file_path = path_template.format(wrestler_name_slug=_slugify(values.get('wrestler_name', '')))
+                elif endpoint == 'fan.view_tagteam':
+                    target_static_file_path = path_template.format(tagteam_name_slug=_slugify(values.get('tagteam_name', '')))
+                elif endpoint == 'fan.view_event':
+                    target_static_file_path = path_template.format(event_slug=values.get('event_slug', ''))
+                elif endpoint == 'fan.belt_history':
+                    belt_id = values.get('belt_id', '')
+                    belt_id_slug = _slugify(str(belt_id)) # Consistent slug generation
+                    target_static_file_path = path_template.format(belt_id_slug=belt_id_slug)
+                elif endpoint == 'fan.view_news':
+                    target_static_file_path = path_template.format(news_id=values.get('news_id', ''))
+                elif endpoint in ['fan.archive_by_year', 'fan.news_archive_by_year']:
+                    target_static_file_path = path_template.format(year=values.get('year', ''))
+                else: # For base fan pages like home, roster, events_list, etc.
+                    target_static_file_path = path_template
             
-            # Fallback for any other endpoint during static export (should ideally not happen for fan mode)
-            print(f"Warning: Unhandled endpoint '{endpoint}' during static export. Using dynamic URL.")
-            return url_for(endpoint, **values)
+            if target_static_file_path:
+                return _get_relative_url(current_static_path, target_static_file_path)
+            else:
+                # Fallback for unmapped fan endpoints during static export
+                print(f"Warning: Unhandled endpoint '{endpoint}' during static export. Using dynamic URL.")
+                return url_for(endpoint, **values)
         
         # If not in static_export_mode, or if the endpoint is not a fan mode endpoint, use regular url_for
         return url_for(endpoint, **values)

@@ -14,6 +14,14 @@ from src.segments import _slugify # Import _slugify for consistent slug generati
 STATIC_SITE_OUTPUT_DIR_NAME = 'static_export'
 STATIC_SITE_ZIP_DIR_NAME = 'static_site_zips' # Directory to store generated zip files
 
+# New constants for subdirectory names
+WRESTLERS_SUBDIR = 'wrestlers'
+TAGTEAMS_SUBDIR = 'tagteams'
+EVENTS_SUBDIR = 'events'
+CHAMPIONSHIPS_SUBDIR = 'championships'
+NEWS_SUBDIR = 'news'
+ARCHIVE_SUBDIR = 'archive' # For event and news archives
+
 def _get_static_site_output_path():
     """Returns the path where the static site will be generated."""
     return os.path.join(get_project_root(), STATIC_SITE_OUTPUT_DIR_NAME)
@@ -22,12 +30,14 @@ def _get_static_site_zip_path():
     """Returns the path where the static site zip files will be stored."""
     return os.path.join(get_project_root(), STATIC_SITE_ZIP_DIR_NAME)
 
-def _save_static_page(client, url, dest_path):
+def _save_static_page(client, url, dest_full_path):
     """Helper to make a request and save the response."""
-    response = client.get(url, headers={'X-Static-Export': 'true'})
+    # Calculate the path relative to the static export root to pass in the header
+    relative_static_path = os.path.relpath(dest_full_path, _get_static_site_output_path())
+    response = client.get(url, headers={'X-Static-Export': 'true', 'X-Static-Path': relative_static_path})
     if response.status_code == 200:
-        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-        with open(dest_path, 'wb') as f:
+        os.makedirs(os.path.dirname(dest_full_path), exist_ok=True)
+        with open(dest_full_path, 'wb') as f:
             f.write(response.data)
     else:
         print(f"Warning: Could not generate static page for {url} (Status: {response.status_code}).")
@@ -41,7 +51,7 @@ def generate_static_site(flask_app):
     output_path = _get_static_site_output_path()
     zip_storage_path = _get_static_site_zip_path()
 
-    # 1. Prepare output directories
+    # 1. Prepare output directories and deployment cleanup
     if os.path.exists(output_path):
         shutil.rmtree(output_path)
     os.makedirs(output_path, exist_ok=True)
@@ -62,38 +72,40 @@ def generate_static_site(flask_app):
 
     # 3. Generate Fan Mode pages
     with flask_app.test_client() as client:
-        # Base fan pages
+        # Base fan pages (root level or index pages in subdirectories)
         base_fan_pages = {
             'fan.home': 'index.html',
-            'fan.roster': 'roster.html',
-            'fan.events_list': 'events.html',
-            'fan.champions_list': 'champions.html',
-            'fan.news_list': 'news.html',
+            'fan.roster': os.path.join(WRESTLERS_SUBDIR, 'index.html'),
+            'fan.events_list': os.path.join(EVENTS_SUBDIR, 'index.html'),
+            'fan.champions_list': os.path.join(CHAMPIONSHIPS_SUBDIR, 'index.html'),
+            'fan.news_list': os.path.join(NEWS_SUBDIR, 'index.html'),
         }
-        for endpoint, filename in base_fan_pages.items():
+        for endpoint, relative_path in base_fan_pages.items():
             with flask_app.app_context():
                 url = url_for(endpoint)
-            _save_static_page(client, url, os.path.join(output_path, filename))
+            _save_static_page(client, url, os.path.join(output_path, relative_path))
 
         # Generate wrestler detail pages
         wrestlers = load_wrestlers()
         for wrestler in wrestlers:
             wrestler_name = wrestler.get('Name')
             if wrestler_name:
+                wrestler_slug = _slugify(wrestler_name)
                 with flask_app.app_context():
                     url = url_for('fan.view_wrestler', wrestler_name=wrestler_name)
-                    static_filename = f"wrestler-{_slugify(wrestler_name)}.html"
-                _save_static_page(client, url, os.path.join(output_path, static_filename))
+                    static_filename = f"{wrestler_slug}.html"
+                _save_static_page(client, url, os.path.join(output_path, WRESTLERS_SUBDIR, static_filename))
 
         # Generate tagteam detail pages
         tagteams = load_tagteams()
         for tagteam in tagteams:
             tagteam_name = tagteam.get('Name')
             if tagteam_name:
+                tagteam_slug = _slugify(tagteam_name)
                 with flask_app.app_context():
                     url = url_for('fan.view_tagteam', tagteam_name=tagteam_name)
-                    static_filename = f"tagteam-{_slugify(tagteam_name)}.html"
-                _save_static_page(client, url, os.path.join(output_path, static_filename))
+                    static_filename = f"{tagteam_slug}.html"
+                _save_static_page(client, url, os.path.join(output_path, TAGTEAMS_SUBDIR, static_filename))
 
         # Generate event detail pages and archive pages
         events = load_events()
@@ -105,8 +117,8 @@ def generate_static_site(flask_app):
                 event_slug = _slugify(event_name)
                 with flask_app.app_context():
                     url = url_for('fan.view_event', event_slug=event_slug)
-                    static_filename = f"event-{event_slug}.html"
-                _save_static_page(client, url, os.path.join(output_path, static_filename))
+                    static_filename = f"{event_slug}.html"
+                _save_static_page(client, url, os.path.join(output_path, EVENTS_SUBDIR, static_filename))
                 
                 try:
                     event_year = datetime.strptime(event_date_str, '%Y-%m-%d').year
@@ -117,18 +129,21 @@ def generate_static_site(flask_app):
         for year in sorted(list(event_years)):
             with flask_app.app_context():
                 url = url_for('fan.archive_by_year', year=year)
-                static_filename = f"events-archive-{year}.html"
-            _save_static_page(client, url, os.path.join(output_path, static_filename))
+                static_filename = f"{year}.html" # e.g., 2023.html
+            _save_static_page(client, url, os.path.join(output_path, EVENTS_SUBDIR, ARCHIVE_SUBDIR, static_filename))
 
         # Generate belt history pages
         belts = load_belts()
         for belt in belts:
             belt_id = belt.get('ID')
             if belt_id:
+                # Ensure the static filename matches the slug generated by static_url_for_func in app.py
+                # which uses the belt_id for the slug.
+                belt_id_slug = _slugify(str(belt_id))
                 with flask_app.app_context():
                     url = url_for('fan.belt_history', belt_id=belt_id)
-                    static_filename = f"belt-{belt_id}.html"
-                _save_static_page(client, url, os.path.join(output_path, static_filename))
+                    static_filename = f"{belt_id_slug}.html"
+                _save_static_page(client, url, os.path.join(output_path, CHAMPIONSHIPS_SUBDIR, static_filename))
 
         # Generate news detail pages and archive pages
         news_posts = load_news_posts()
@@ -139,8 +154,8 @@ def generate_static_site(flask_app):
             if news_id and news_date_str:
                 with flask_app.app_context():
                     url = url_for('fan.view_news', news_id=news_id)
-                    static_filename = f"news-{news_id}.html"
-                _save_static_page(client, url, os.path.join(output_path, static_filename))
+                    static_filename = f"{news_id}.html"
+                _save_static_page(client, url, os.path.join(output_path, NEWS_SUBDIR, static_filename))
 
                 try:
                     news_year = datetime.strptime(news_date_str, '%Y-%m-%d').year
@@ -151,8 +166,8 @@ def generate_static_site(flask_app):
         for year in sorted(list(news_years)):
             with flask_app.app_context():
                 url = url_for('fan.news_archive_by_year', year=year)
-                static_filename = f"news-archive-{year}.html"
-            _save_static_page(client, url, os.path.join(output_path, static_filename))
+                static_filename = f"{year}.html" # e.g., 2023.html
+            _save_static_page(client, url, os.path.join(output_path, NEWS_SUBDIR, ARCHIVE_SUBDIR, static_filename))
 
     # 4. Create a zip archive of the generated static site
     archive_name = f"slamsim_fan_site_{datetime.now().strftime('%Y%m%d_%H%M%S')}"

@@ -10,7 +10,7 @@
         {% if news_posts %}
             {% for post in news_posts %}
             <div class="news-item">
-                <h2 class="news-subject"><a href="{{ url_for('fan.view_news', news_id=post.News_ID) }}">{{ post.Subject }}</a></h2>
+                <h2 class="news-subject"><a href="{{ static_url_for('fan.view_news', news_id=post.News_ID) }}">{{ post.Subject }}</a></h2>
                 <p class="news-date">{{ post.Date }}</p>
                 {% if prefs.fan_mode_home_show_news == 'Show Excerpts' %}
                     <div class="news-excerpt">
@@ -24,6 +24,6 @@
         {% endif %}
     </div>
 
-    <p class="back-link"><a href="{{ url_for('fan.news_list') }}">← Back to All News</a></p>
+    <p class="back-link"><a href="{{ static_url_for('fan.news_list') }}">← Back to All News</a></p>
 </div>
 {% endblock %}

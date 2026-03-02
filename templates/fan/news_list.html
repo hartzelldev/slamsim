@@ -13,7 +13,7 @@
         <div class="news-list">
             {% for post in latest_news %}
             <div class="news-item">
-                <h2 class="news-subject"><a href="{{ url_for('fan.view_news', news_id=post.News_ID) }}">{{ post.Subject }}</a></h2>
+                <h2 class="news-subject"><a href="{{ static_url_for('fan.view_news', news_id=post.News_ID) }}">{{ post.Subject }}</a></h2>
                 <p class="news-date">{{ post.Date }}</p>
                 {% if prefs.fan_mode_home_show_news == 'Show Excerpts' %}
                     <div class="news-excerpt">
@@ -25,13 +25,13 @@
         </div>
 
         {% if news_posts|length > num_news_to_show %}
-            <p class="text-center"><a href="{{ url_for('fan.news_list') }}">View All News</a></p>
+            <p class="text-center"><a href="{{ static_url_for('fan.news_list') }}">View All News</a></p>
         {% endif %}
 
         <h2 class="section-title">News Archives</h2>
         <div class="archive-links">
             {% for year in years %}
-                <a href="{{ url_for('fan.news_archive_by_year', year=year) }}" class="archive-link">{{ year }}</a>{% if not loop.last %}, {% endif %}
+                <a href="{{ static_url_for('fan.news_archive_by_year', year=year) }}" class="archive-link">{{ year }}</a>{% if not loop.last %}, {% endif %}
             {% endfor %}
         </div>
     {% else %}

@@ -17,13 +17,13 @@
     <div class="header-bar">
         <h2>Latest News</h2>
         <div class="action-buttons">
-            <a href="{{ url_for('fan.news_list') }}">View All News</a>
+            <a href="{{ static_url_for('fan.news_list') }}">View All News</a>
         </div>
     </div>
 
     {% for post in news_posts %}
     <div class="news-item-home">
-        <h3><a href="{{ url_for('fan.view_news', news_id=post.News_ID) }}">{{ post.Subject }}</a></h3>
+        <h3><a href="{{ static_url_for('fan.view_news', news_id=post.News_ID) }}">{{ post.Subject }}</a></h3>
         <p class="post-date">{{ post.Date }}</p>
         {% if prefs.fan_mode_home_show_news == 'Show Full Posts' %}
         <div class="content-body">
@@ -59,11 +59,11 @@
     </div>
     <ul class="event-list-home">
         {% for event in recent_events %}
-        <li>{{ event.Date }} - <strong><a href="{{ url_for('fan.view_event', event_slug=event.event_slug) }}">{{ event.Event_Name }}{% if event.Subtitle %}: {{ event.Subtitle }}{% endif %}</a></strong> - {{ event.Location }}</li>
+        <li>{{ event.Date }} - <strong><a href="{{ static_url_for('fan.view_event', event_slug=event.event_slug) }}">{{ event.Event_Name }}{% if event.Subtitle %}: {{ event.Subtitle }}{% endif %}</a></strong> - {{ event.Location }}</li>
         {% endfor %}
     </ul>
     <div class="view-all-link">
-        <a href="{{ url_for('fan.events_list') }}">View All Events</a>
+        <a href="{{ static_url_for('fan.events_list') }}">View All Events</a>
     </div>
 </div>
 {% endif %}
@@ -77,11 +77,11 @@
     </div>
     <ul class="champions-list-home">
         {% for belt in belts %}
-        <li><strong><a href="{{ url_for('fan.belt_history', belt_id=belt.ID) }}">{{ belt.Name }}</a>:</strong> {{ belt.display_holder or 'Vacant' }}</li>
+        <li><strong><a href="{{ static_url_for('fan.belt_history', belt_id=belt.ID) }}">{{ belt.Name }}</a>:</strong> {{ belt.display_holder or 'Vacant' }}</li>
         {% endfor %}
     </ul>
     <div class="view-all-link">
-        <a href="{{ url_for('fan.roster') }}">View Full Roster</a>
+        <a href="{{ static_url_for('fan.roster') }}">View Full Roster</a>
     </div>
 </div>
 {% endif %}

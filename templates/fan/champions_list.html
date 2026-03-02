@@ -9,7 +9,7 @@
     <ul class="list-group mt-3">
         {% for belt in belts %}
         <li class="list-group-item">
-            <strong><a href="{{ url_for('fan.belt_history', belt_id=belt.ID) }}">{{ belt.Name }}</a>:</strong> {{ belt.display_holder or 'Vacant' }}
+            <strong><a href="{{ static_url_for('fan.belt_history', belt_id=belt.ID) }}">{{ belt.Name }}</a>:</strong> {{ belt.display_holder or 'Vacant' }}
         </li>
         {% endfor %}
     </ul>

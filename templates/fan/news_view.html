@@ -11,6 +11,6 @@
         {{ news_post.RenderedContent | safe }}
     </div>
 
-    <p class="back-link"><a href="{{ url_for('fan.news_list') }}">← Back to News List</a></p>
+    <p class="back-link"><a href="{{ static_url_for('fan.news_list') }}">← Back to News List</a></p>
 </div>
 {% endblock %}
