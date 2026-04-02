@@ -141,5 +141,9 @@ def goodbye():
     return render_template('goodbye.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # This block is for direct execution, e.g., python src/app.py
+    # In this scenario, we don't want to open a browser automatically.
+    # The run.py script handles the browser opening and port selection.
+    app.run(debug=True, host='0.0.0.0', port=os.environ.get('FLASK_RUN_PORT', 5000))
+
 
