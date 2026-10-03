@@ -29,7 +29,7 @@ def main():
     # Start the Flask app as a non-blocking process
     # Pass the selected port to the Flask app via an environment variable
     env['FLASK_RUN_PORT'] = str(port)
-    process = subprocess.Popen(['python', app_script_path], env=env) # Pass the modified environment
+    process = subprocess.Popen([sys.executable, app_script_path], env=env) # Pass the modified environment
     
     # Give the server a moment to start up
     time.sleep(1) 
