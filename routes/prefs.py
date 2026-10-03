@@ -8,6 +8,7 @@ from src.wrestlers import reset_all_wrestler_records
 from src.tagteams import reset_all_tagteam_records, recalculate_all_tagteam_weights
 from src.system import delete_all_temporary_files, get_league_logo_path, LEAGUE_LOGO_FILENAME, INCLUDES_DIR, get_project_root
 from src.date_utils import get_current_working_date
+from src.llm_providers import fetch_dynamic_models
 
 # Load environment variables from .env file
 load_dotenv()
@@ -45,7 +46,9 @@ def _load_api_providers_config():
     raw_config = _load_raw_api_providers_config()
     providers_dict = {}
     for provider in raw_config:
-        providers_dict[provider['name']] = provider['models']
+        name = provider['name']
+        static_models = provider.get('models', [])
+        providers_dict[name] = fetch_dynamic_models(name, static_models)
     return providers_dict
 
 @prefs_bp.route('/preferences', methods=['GET', 'POST'])
@@ -56,6 +59,8 @@ def general_prefs():
     # Check if API keys are set in environment variables
     google_key_is_set = bool(os.getenv('SLAMSIM_GOOGLE_KEY'))
     openai_key_is_set = bool(os.getenv('SLAMSIM_OPENAI_KEY')) # Check SLAMSIM_OPENAI_KEY
+    openrouter_key_is_set = bool(os.getenv('SLAMSIM_OPENROUTER_KEY'))
+    groq_key_is_set = bool(os.getenv('SLAMSIM_GROQ_KEY'))
 
     # Set default values for preferences if they are not already set
     prefs.setdefault('league_name', 'My Awesome League')
@@ -116,6 +121,8 @@ def general_prefs():
         # Get API keys from form, but do not store them in updated_prefs for prefs.json
         google_api_key_from_form = request.form.get('google_api_key', '')
         openai_api_key_from_form = request.form.get('openai_api_key', '')
+        openrouter_api_key_from_form = request.form.get('openrouter_api_key', '')
+        groq_api_key_from_form = request.form.get('groq_api_key', '')
 
         game_date_mode = request.form.get('game_date_mode', 'real-time')
         weight_unit = request.form.get('weight_unit', 'lbs.')
@@ -158,6 +165,10 @@ def general_prefs():
             set_key('.env', 'SLAMSIM_GOOGLE_KEY', google_api_key_from_form)
         if openai_api_key_from_form:
             set_key('.env', 'SLAMSIM_OPENAI_KEY', openai_api_key_from_form) # Set SLAMSIM_OPENAI_KEY
+        if openrouter_api_key_from_form:
+            set_key('.env', 'SLAMSIM_OPENROUTER_KEY', openrouter_api_key_from_form)
+        if groq_api_key_from_form:
+            set_key('.env', 'SLAMSIM_GROQ_KEY', groq_api_key_from_form)
 
         # Handle logo upload
         if 'league_logo' in request.files:
@@ -185,7 +196,7 @@ def general_prefs():
 
     current_game_date = get_current_working_date().isoformat()
 
-    return render_template('booker/prefs.html', prefs=prefs, league_logo_url=league_logo_url, available_models=all_available_models, current_game_date=current_game_date, fan_home_custom_text=fan_home_custom_text, google_key_is_set=google_key_is_set, openai_key_is_set=openai_key_is_set)
+    return render_template('booker/prefs.html', prefs=prefs, league_logo_url=league_logo_url, available_models=all_available_models, current_game_date=current_game_date, fan_home_custom_text=fan_home_custom_text, google_key_is_set=google_key_is_set, openai_key_is_set=openai_key_is_set, openrouter_key_is_set=openrouter_key_is_set, groq_key_is_set=groq_key_is_set)
 
 @prefs_bp.route('/api_providers', methods=['GET'])
 def manage_api_providers():

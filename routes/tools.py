@@ -59,18 +59,34 @@ def generate_roster():
         
         # Retrieve API keys directly from environment variables
         google_api_key = os.getenv('SLAMSIM_GOOGLE_KEY')
-        openai_api_key = os.getenv('SLAMSIM_OPENAI_KEY') # Use SLAMSIM_OPENAI_KEY
+        openai_api_key = os.getenv('SLAMSIM_OPENAI_KEY')
+        openrouter_api_key = os.getenv('SLAMSIM_OPENROUTER_KEY')
+        groq_api_key = os.getenv('SLAMSIM_GROQ_KEY')
 
         api_key_to_use = None
         if model_provider == "Google":
             api_key_to_use = google_api_key
-            os.environ["SLAMSIM_GOOGLE_KEY"] = api_key_to_use # Ensure litellm sees it
+            if api_key_to_use:
+                os.environ["SLAMSIM_GOOGLE_KEY"] = api_key_to_use
+                os.environ["GEMINI_API_KEY"] = api_key_to_use
         elif model_provider == "OpenAI":
             api_key_to_use = openai_api_key
-            os.environ["SLAMSIM_OPENAI_KEY"] = api_key_to_use # Ensure litellm sees it
+            if api_key_to_use:
+                os.environ["SLAMSIM_OPENAI_KEY"] = api_key_to_use
+                os.environ["OPENAI_API_KEY"] = api_key_to_use
+        elif model_provider == "OpenRouter":
+            api_key_to_use = openrouter_api_key
+            if api_key_to_use:
+                os.environ["SLAMSIM_OPENROUTER_KEY"] = api_key_to_use
+                os.environ["OPENROUTER_API_KEY"] = api_key_to_use
+        elif model_provider == "Groq":
+            api_key_to_use = groq_api_key
+            if api_key_to_use:
+                os.environ["SLAMSIM_GROQ_KEY"] = api_key_to_use
+                os.environ["GROQ_API_KEY"] = api_key_to_use
 
-        if not all([model_provider, model_name, api_key_to_use]):
-            flash("AI model preferences are not fully configured. Please check your preferences.", "danger")
+        if model_provider in ["Google", "OpenAI", "OpenRouter", "Groq"] and not api_key_to_use:
+            flash(f"API key for {model_provider} is not configured. Please check your preferences.", "danger")
             return redirect(url_for('tools.ai_roster_generator_form'))
 
         system_prompt = f"""
@@ -119,13 +135,16 @@ def generate_roster():
             {"role": "user", "content": user_prompt}
         ]
 
-        # Construct the model string in the format litellm expects (e.g., "gemini/gemini-1.5-flash")
-        litellm_model_string = ""
-        if model_provider == "Google":
+        # Construct the model string in the format litellm expects
+        litellm_model_string = model_name
+        if model_provider == "Google" and not model_name.startswith("gemini/"):
             litellm_model_string = f"gemini/{model_name}"
-        elif model_provider == "OpenAI":
+        elif model_provider == "OpenAI" and not model_name.startswith("openai/"):
             litellm_model_string = f"openai/{model_name}"
-        # Add other providers if necessary
+        elif model_provider == "OpenRouter" and not model_name.startswith("openrouter/"):
+            litellm_model_string = f"openrouter/{model_name}"
+        elif model_provider == "Groq" and not model_name.startswith("groq/"):
+            litellm_model_string = f"groq/{model_name}"
 
         if not litellm_model_string:
             flash("Unsupported AI provider configured.", "danger")

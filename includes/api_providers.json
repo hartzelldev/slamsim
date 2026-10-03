@@ -23,6 +23,26 @@
             ]
         },
         {
+            "name": "OpenRouter",
+            "models": [
+                {"id": "auto", "name": "Auto (Best for Prompt)"},
+                {"id": "openai/gpt-4o", "name": "OpenAI: GPT-4o"},
+                {"id": "anthropic/claude-3.5-sonnet", "name": "Anthropic: Claude 3.5 Sonnet"},
+                {"id": "google/gemini-2.0-flash-001", "name": "Google: Gemini 2.0 Flash"},
+                {"id": "meta-llama/llama-3.3-70b-instruct", "name": "Meta: Llama 3.3 70B Instruct"},
+                {"id": "deepseek/deepseek-r1", "name": "DeepSeek: R1"}
+            ]
+        },
+        {
+            "name": "Groq",
+            "models": [
+                {"id": "llama-3.3-70b-versatile", "name": "Llama 3.3 70B Versatile"},
+                {"id": "llama-3.1-8b-instant", "name": "Llama 3.1 8B Instant"},
+                {"id": "mixtral-8x7b-32768", "name": "Mixtral 8x7b"},
+                {"id": "deepseek-r1-distill-llama-70b", "name": "DeepSeek R1 Distill Llama 70B"}
+            ]
+        },
+        {
             "name": "Local LLM",
             "models": [
                 {"id": "local-llm", "name": "Local LLM (specify API base and model name)"}

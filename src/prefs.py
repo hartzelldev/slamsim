@@ -63,6 +63,8 @@ def load_preferences():
         "ai_model": "",
         "google_api_key": "",
         "openai_api_key": "",
+        "openrouter_api_key": "",
+        "groq_api_key": "",
         "game_date_mode": "real-time", # New preference
         "game_date": datetime.date.today().isoformat(), # New preference
         "weight_unit": "lbs." # New preference for weight unit
@@ -119,6 +121,8 @@ def save_preferences(prefs_dict):
         {"Pref": "AI_Model", "Value": prefs_dict.get("ai_model", "")},
         {"Pref": "Google_API_Key", "Value": prefs_dict.get("google_api_key", "")},
         {"Pref": "OpenAI_API_Key", "Value": prefs_dict.get("openai_api_key", "")},
+        {"Pref": "OpenRouter_API_Key", "Value": prefs_dict.get("openrouter_api_key", "")},
+        {"Pref": "Groq_API_Key", "Value": prefs_dict.get("groq_api_key", "")},
         {"Pref": "Game_Date_Mode", "Value": prefs_dict.get("game_date_mode", "real-time")}, # New preference
         {"Pref": "Game_Date", "Value": prefs_dict.get("game_date", datetime.date.today().isoformat())}, # New preference
         {"Pref": "Weight_Unit", "Value": prefs_dict.get("weight_unit", "lbs.")} # New preference for weight unit

@@ -336,23 +336,37 @@ def ai_generate(event_slug, position):
     
     # Retrieve API keys directly from environment variables
     google_api_key = os.getenv('SLAMSIM_GOOGLE_KEY')
-    openai_api_key = os.getenv('SLAMSIM_OPENAI_KEY') # Use SLAMSIM_OPENAI_KEY
+    openai_api_key = os.getenv('SLAMSIM_OPENAI_KEY')
+    openrouter_api_key = os.getenv('SLAMSIM_OPENROUTER_KEY')
+    groq_api_key = os.getenv('SLAMSIM_GROQ_KEY')
 
     # Determine which API key to use and set environment variable for litellm
     api_key_to_use = None
     if ai_provider == 'Google':
         api_key_to_use = google_api_key
-        os.environ["SLAMSIM_GOOGLE_KEY"] = api_key_to_use
+        if api_key_to_use:
+            os.environ["SLAMSIM_GOOGLE_KEY"] = api_key_to_use
+            os.environ["GEMINI_API_KEY"] = api_key_to_use
     elif ai_provider == 'OpenAI':
         api_key_to_use = openai_api_key
-        os.environ["SLAMSIM_OPENAI_KEY"] = api_key_to_use # Use SLAMSIM_OPENAI_KEY
+        if api_key_to_use:
+            os.environ["SLAMSIM_OPENAI_KEY"] = api_key_to_use
+            os.environ["OPENAI_API_KEY"] = api_key_to_use
+    elif ai_provider == 'OpenRouter':
+        api_key_to_use = openrouter_api_key
+        if api_key_to_use:
+            os.environ["SLAMSIM_OPENROUTER_KEY"] = api_key_to_use
+            os.environ["OPENROUTER_API_KEY"] = api_key_to_use
+    elif ai_provider == 'Groq':
+        api_key_to_use = groq_api_key
+        if api_key_to_use:
+            os.environ["SLAMSIM_GROQ_KEY"] = api_key_to_use
+            os.environ["GROQ_API_KEY"] = api_key_to_use
     
     if not ai_model:
         return jsonify({'error': 'AI model not configured in preferences.'}), 400
-    if ai_provider == 'Google' and not api_key_to_use:
-        return jsonify({'error': 'Google API key not configured in preferences.'}), 400
-    if ai_provider == 'OpenAI' and not api_key_to_use:
-        return jsonify({'error': 'OpenAI API key not configured in preferences.'}), 400
+    if ai_provider in ['Google', 'OpenAI', 'OpenRouter', 'Groq'] and not api_key_to_use:
+        return jsonify({'error': f'{ai_provider} API key not configured in preferences.'}), 400
 
 
     segment = None
@@ -635,8 +649,16 @@ def ai_generate(event_slug, position):
     messages = [{"role": "user", "content": final_prompt}]
     ai_summary = "Error: Could not generate summary."
 
+    model_to_use = ai_model
+    if ai_provider == 'OpenRouter' and not model_to_use.startswith('openrouter/'):
+        model_to_use = f"openrouter/{model_to_use}"
+    elif ai_provider == 'Groq' and not model_to_use.startswith('groq/'):
+        model_to_use = f"groq/{model_to_use}"
+    elif ai_provider == 'Google' and not model_to_use.startswith('gemini/'):
+        model_to_use = f"gemini/{model_to_use}"
+
     try:
-        response = litellm.completion(model=ai_model, messages=messages, api_key=api_key_to_use)
+        response = litellm.completion(model=model_to_use, messages=messages, api_key=api_key_to_use)
         ai_summary = response.choices[0].message.content
     except Exception as e:
         print(f"Error calling Litellm API: {e}")
