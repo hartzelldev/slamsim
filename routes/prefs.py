@@ -201,7 +201,36 @@ def general_prefs():
 @prefs_bp.route('/api_providers', methods=['GET'])
 def manage_api_providers():
     providers = _load_raw_api_providers_config()
-    return render_template('booker/manage_api_providers.html', providers=providers)
+    api_keys_status = {
+        'Google Gemini': bool(os.getenv('SLAMSIM_GOOGLE_KEY')),
+        'Google': bool(os.getenv('SLAMSIM_GOOGLE_KEY')),
+        'OpenAI': bool(os.getenv('SLAMSIM_OPENAI_KEY')),
+        'OpenRouter': bool(os.getenv('SLAMSIM_OPENROUTER_KEY')),
+        'Groq': bool(os.getenv('SLAMSIM_GROQ_KEY')),
+    }
+    return render_template('booker/manage_api_providers.html', providers=providers, api_keys_status=api_keys_status)
+
+@prefs_bp.route('/api_providers/save_key/<string:provider_name>', methods=['POST'])
+def save_provider_api_key(provider_name):
+    api_key = request.form.get('api_key', '').strip()
+    env_var = None
+    name_lower = provider_name.lower()
+    if 'google' in name_lower or 'gemini' in name_lower:
+        env_var = 'SLAMSIM_GOOGLE_KEY'
+    elif 'openai' in name_lower:
+        env_var = 'SLAMSIM_OPENAI_KEY'
+    elif 'openrouter' in name_lower:
+        env_var = 'SLAMSIM_OPENROUTER_KEY'
+    elif 'groq' in name_lower:
+        env_var = 'SLAMSIM_GROQ_KEY'
+
+    if env_var:
+        set_key('.env', env_var, api_key)
+        os.environ[env_var] = api_key
+        flash(f'API Key for {provider_name} updated successfully!', 'success')
+    else:
+        flash(f'No API Key configuration supported for {provider_name}.', 'warning')
+    return redirect(url_for('prefs.manage_api_providers'))
 
 @prefs_bp.route('/api_providers/add_provider', methods=['POST'])
 def add_api_provider():

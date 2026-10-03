@@ -14,20 +14,40 @@
     <h3>Current AI Providers and Models</h3>
     {% if providers %}
         {% for provider in providers %}
+        {% set is_local = 'local' in provider.name.lower() %}
         <div class="card mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4>{{ provider.name }}</h4>
                 <div>
                     <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#editProviderModal"
                             data-provider-name="{{ provider.name }}">Edit Provider</button>
+                    {% if is_local %}
                     <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#addModelModal"
                             data-provider-name="{{ provider.name }}">Add Model</button>
+                    {% endif %}
                     <form action="{{ url_for('prefs.delete_api_provider', provider_name=provider.name) }}" method="POST" class="d-inline">
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete the provider {{ provider.name }} and all its models?');">Delete Provider</button>
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete the provider {{ provider.name }}?');">Delete Provider</button>
                     </form>
                 </div>
             </div>
             <div class="card-body">
+                {% if not is_local %}
+                <div class="mb-3">
+                    <form action="{{ url_for('prefs.save_provider_api_key', provider_name=provider.name) }}" method="POST" class="form-inline">
+                        <div class="form-group mr-2">
+                            <label for="api_key_{{ loop.index }}" class="mr-2">API Key:</label>
+                            <input type="password" class="form-control form-control-sm" id="api_key_{{ loop.index }}" name="api_key" placeholder="Enter API Key">
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">Save Key</button>
+                        {% if api_keys_status.get(provider.name) %}
+                        <span class="badge badge-success ml-2">Key Set</span>
+                        {% else %}
+                        <span class="badge badge-warning ml-2">Key Not Set</span>
+                        {% endif %}
+                    </form>
+                    <small class="text-muted d-block mt-1">Models for this provider are fetched automatically via API.</small>
+                </div>
+                {% else %}
                 {% if provider.models %}
                 <table class="table table-striped table-sm">
                     <thead>
@@ -55,6 +75,7 @@
                 </table>
                 {% else %}
                 <p>No models configured for this provider.</p>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
