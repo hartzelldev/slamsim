@@ -1,13 +1,26 @@
 # SlamSim! Development History
 
-This document tracks the major changes, new features, and bug fixes for the 1.0 version of SlamSim!.
+This document tracks the major changes, new features, and bug fixes for SlamSim!.
 
 ---
 
-## v1.0 Beta 6 - Security, SSG, and More (2026-02-11)
+## v0.11 Beta (2026-10-04)
+
+### Enhancement: More AI Providers
+- Added support for OpenRouter and Groq to give users hundreds of models to choose from.
+- The list of models for each provider is now dynamicly generated instead of needing to be manually added.
+- Text boxes have been added for users to input their API keys instead of having to edit .env manually.
+
+### Bug Fix: 404 Errors in Windows
+- Corrected a bug I introduced in the last version that caused the game to throw an error in the web browser, instead of launching the home page.
+
+### Trivial: Version Numbers
+- Renumbered the versions to a more standardized "0.x format. I'll use the 0 major version until the first stable release is ready.
+
+
+## v0.10 Beta - Security, SSG, and More (2026-02-11)
 
 This release features the static league site generator, as well as new Fan Mode preferences, a security enhancement, and bug fixes.
-
 
 ### New Feature: Static Site Generator (SSG)
 - Introduced full league static site generation capabilities.
@@ -27,7 +40,7 @@ This release features the static league site generator, as well as new Fan Mode 
 - Resolved multiple issues involving list parsing and string "split" errors.  
 - Corrected a bug in the automated calculation of win/loss records.
 
-## v1.0 Beta 5 (2025-12-05)
+## v0.9 Beta (2025-12-05)
 
 This release concentrates on enhancements and bug fixes.
 
@@ -52,7 +65,7 @@ This release concentrates on enhancements and bug fixes.
 - Fixed a bug (hopefully) where wrestler names and signature moves were not getting passed to the AI for match generation.
 - Fixed a bug in Booker Mode where Belt History was not using game_date, always using current_date instead.
 
-## V1.0 Beta 4 (2025-11-22)
+## V0.8 Beta (2025-11-22)
 
 This release introduces a new AI tool for quickly creating wrestler rosters.
 
@@ -61,7 +74,7 @@ This release introduces a new AI tool for quickly creating wrestler rosters.
 - **Creative Mode:** Generates original fictional wrestlers with full creative profiles.
 - **Real-World Grounding Mode:** Uses Google Search to find real wrestler data (names, heights, weights, move-sets, and birthdates) for historical or active figures.
 
-## v1.0 Beta 3 - Tools and Data Safety (2025-11-18)
+## v0.7 Beta - Tools and Data Safety (2025-11-18)
 
 This release focuses on application structure, user experience, and—most importantly—data security. We have introduced a critical Backup and Restore feature to ensure data is protected, and simplified the top-level navigation.
 
@@ -93,7 +106,7 @@ This release focuses on application structure, user experience, and—most impor
 - Fixed a bug in calculating tagteam records for wrestlers.
 - Added missing 'awards' and 'moves' in tagteam profiles in Fan Mode.
 
-## v1.0 Beta 2 - The AI Match Writer (2025-10-22)
+## v0.6 Beta - The AI Match Writer (2025-10-22)
 
 This beta release introduces the first iteration of the AI Assistant, focused specifically on generating match summaries. It also includes configuration options for managing AI providers and a new quality-of-life feature for roster management.
 
@@ -121,7 +134,7 @@ This beta release introduces the first iteration of the AI Assistant, focused sp
 - Wrestlers and Tag Teams marked with this flag will still appear in Booker Mode lists and dropdowns but will be excluded from the public-facing Fan Mode roster page.
 
 
-## v1.0 Beta 1 (2025-10-14)
+## v0.5 Beta (2025-10-14)
 
 This first official beta has two new features and several bug fixes. Next, I'll start working on the AI match writer.
 
@@ -139,7 +152,7 @@ This first official beta has two new features and several bug fixes. Next, I'll 
 - Fixed a bug in the segments builder where participants_display was not showing tag-teams and individual wrestlers correctly in multi-person matches.
 - Fixed a couple of bad url_for strings in fan.home.
 
-## v1.0 Alpha 4 - Fan Mode Completion & Engine Overhaul (2025-10-01)
+## v0.4 Alpha - Fan Mode Completion & Engine Overhaul (2025-10-01)
 
 This is the final and largest alpha release, preparing the application for its beta phase. This version introduces the complete "Fan Mode," a full-featured, read-only view of the promotion designed for an audience. It also includes a major overhaul of the core booking engine, focusing on data integrity, narrative control, and professional-grade administrative tools.
 
@@ -154,19 +167,16 @@ The application now has a fully realized "Fan Mode," a complete front-end experi
 ### Booking Engine & Data Integrity Overhaul
 
 - **Match Finish System:** The segment editor has been completely overhauled. It now includes a detailed "Match Finish & Presentation" section with options for "Method of Victory" (Pinfall, Submission, etc.) and a comprehensive "Match Outcome" dropdown that properly handles draws and no contests.
-
 - **Narrative Control:** The match_result string is now an intelligent, narrative-driven sentence that correctly reports on title changes (e.g., "...to become the new World Champion") and successful defenses.
-
 - **Conditional Deletion:** Deletion logic has been hardened across the entire application. Entities that are part of the historical record (e.g., a wrestler with a match, a belt with a reign history, a finalized event) can no longer be deleted, protecting data integrity.
-
 - **Architectural Improvements:** Added a Display_Position to Divisions and Belts for custom sorting and a Division_Type to Divisions to enforce correct entity assignment.
 
 ### Bug Fixes
 
 - Critical Fix: Corrected the event finalization logic to ensure individual wrestlers' Tag_Wins and Tag_Losses are properly updated when their tag team competes in a match.
-- Resolved multiple critical bugs related to file generation, template rendering, and JavaScript functionality that were causing application crashes and a
+- Resolved multiple critical bugs related to file generation, template rendering, and JavaScript functionality that were causing application crashes.
 
-## v1.0 Alpha 3 - Introducing Fan Mode (2025-09-23)
+## v0.3 Alpha - Introducing Fan Mode (2025-09-23)
 
 This release marks the official debut of "Fan Mode," providing the first public-facing views of the promotion. This version establishes the architectural foundation for the fan experience and introduces the initial Roster and Events pages. Additionally, this version includes critical bug fixes to the core simulation engine, ensuring greater data integrity for wrestler and tag team records.
 
@@ -184,7 +194,7 @@ This release marks the official debut of "Fan Mode," providing the first public-
 * Further hardened the application by making win/loss records read-only in the UI and implementing conditional deletion logic to protect historical data.
 * Improved data integrity by adding a "Division Type" (Singles/Tag-Team) to divisions, ensuring entities can only be assigned to the correct type of division.
 
-## v1.0 Alpha 2 - Championship Update (2025-09-08)
+## v0.2 Alpha - Championship Update (2025-09-08)
 
 This is a major feature release that moves SlamSim! from a collection of CLI scripts to a fully functional web dashboard. This release also introduces a complete, automated championship tracking system and numerous quality-of-life improvements. The application now functions as a true wrestling simulator, where match outcomes have a direct and permanent impact on statistics and title lineages.
 
@@ -227,7 +237,7 @@ This is a major feature release that moves SlamSim! from a collection of CLI scr
 * Corrected data loading issues that prevented newly created entities from appearing in lists.
 * Fixed various structural and logical errors in backend routes and templates.
 
-## v1.0 Alpha 1 (2025-04-29)
+## v0.1 Alpha (2025-04-29)
 
 This is the initial alpha release of SlamSim!, a wrestling league simulator. 
 
