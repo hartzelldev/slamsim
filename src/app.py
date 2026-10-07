@@ -145,6 +145,7 @@ if __name__ == '__main__':
     # In this scenario, we don't want to open a browser automatically.
     # The run.py script handles the browser opening and port selection.
     port = int(os.environ.get('FLASK_RUN_PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() in ('true', '1')
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
 
 
