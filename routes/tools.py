@@ -169,7 +169,15 @@ def generate_roster():
         
         # Parse the JSON response
         generated_data = json.loads(ai_content)
-        generated_roster_raw = generated_data.get('wrestlers', [])
+        if isinstance(generated_data, list):
+            generated_roster_raw = generated_data
+        elif isinstance(generated_data, dict):
+            if 'wrestlers' in generated_data and isinstance(generated_data['wrestlers'], list):
+                generated_roster_raw = generated_data['wrestlers']
+            else:
+                generated_roster_raw = next((v for v in generated_data.values() if isinstance(v, list)), [])
+        else:
+            generated_roster_raw = []
 
         
         for wrestler_data in generated_roster_raw:
@@ -219,11 +227,11 @@ def generate_roster():
         search_sources = []
         try:
             # litellm response structure may vary, check for standard grounding metadata
-            if response.get('usage', {}).get('grounding_metadata'):
-                search_sources = response['usage']['grounding_metadata'].get('grounding_attributions', [])
-        except AttributeError:
+            if hasattr(response, 'get') and isinstance(response.get('usage'), dict):
+                search_sources = response.get('usage', {}).get('grounding_metadata', {}).get('grounding_attributions', [])
+        except (AttributeError, TypeError):
             # Handle cases where the response structure is unexpected
-            pass 
+            pass
 
         # Render the review page
         return render_template('tools/roster_generator.html', 
