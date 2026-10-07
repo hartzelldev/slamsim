@@ -125,9 +125,9 @@ def generate_roster():
             # Revert to standard fictional prompt for clarity
             user_prompt = f"Generate {max_wrestlers} FICTIONAL wrestlers. Creative prompt: '{roster_prompt}'"
         
-        # Grounding logic
+        # Grounding logic (Google Search grounding is only supported by Google Gemini models)
         tools = []
-        if content_mode == 'real_world':
+        if content_mode == 'real_world' and model_provider == "Google":
             tools = [{"google_search": {}}]
 
         messages = [
@@ -150,14 +150,19 @@ def generate_roster():
             flash("Unsupported AI provider configured.", "danger")
             return redirect(url_for('tools.ai_roster_generator_form'))
 
-        response = litellm.completion(
-            model=litellm_model_string,
-            messages=messages,
-            tools=tools,
-            response_format={"type": "json_object"}, # Instruct API to return JSON
-            temperature=0.7, # A bit of creativity
-            api_key=api_key_to_use # Pass the API key explicitly
-        )
+        litellm.drop_params = True
+
+        completion_kwargs = {
+            "model": litellm_model_string,
+            "messages": messages,
+            "response_format": {"type": "json_object"},
+            "temperature": 0.7,
+            "api_key": api_key_to_use
+        }
+        if tools:
+            completion_kwargs["tools"] = tools
+
+        response = litellm.completion(**completion_kwargs)
 
         # Extract content from the response
         ai_content = response.choices[0].message.content

@@ -656,6 +656,8 @@ def ai_generate(event_slug, position):
         model_to_use = f"groq/{model_to_use}"
     elif ai_provider == 'Google' and not model_to_use.startswith('gemini/'):
         model_to_use = f"gemini/{model_to_use}"
+    elif ai_provider == 'OpenAI' and not model_to_use.startswith('openai/'):
+        model_to_use = f"openai/{model_to_use}"
 
     try:
         response = litellm.completion(model=model_to_use, messages=messages, api_key=api_key_to_use)
