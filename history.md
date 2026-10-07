@@ -4,6 +4,11 @@ This document tracks the major changes, new features, and bug fixes for SlamSim!
 
 ---
 
+## v0.11.1 Beta (2026-10-07)
+
+### Bug Fixes
+- Addressed general stability and maintenance bug fixes.
+
 ## v0.11 Beta (2026-10-04)
 
 ### Enhancement: More AI Providers
