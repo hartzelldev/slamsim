@@ -1,6 +1,11 @@
 import os
 import sys
 import random
+
+try:
+    import tiktoken_ext.openai_public  # Required for PyInstaller to bundle tiktoken encodings (cl100k_base, etc.)
+except ImportError:
+    pass
 import time
 import socket
 import threading
