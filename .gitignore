@@ -20,7 +20,7 @@ env/ # common alternative
 # PyInstaller
 *.manifest
 *.spec
-
+!slamsim.spec
 
 # Environments (VS Code, etc.)
 .env
