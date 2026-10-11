@@ -7,7 +7,9 @@ This document tracks the major changes, new features, and bug fixes for SlamSim!
 ## v0.11.1 Beta (2026-10-07)
 
 ### Bug Fixes
-- Addressed general stability and maintenance bug fixes.
+- Addressed general stability and maintenance bug fixes when running the app.
+- Fixed a bug in the AI Roster Generator and AI Match Writer causing 400 errors in OpenRouter and Groq.
+
 
 ## v0.11 Beta (2026-10-04)
 
